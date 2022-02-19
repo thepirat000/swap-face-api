@@ -53,7 +53,9 @@ namespace swap_faces.Swap
                 Settings.AnacondaDeactivateScript
             };
 
-            var result = _shellHelper.ExecuteWithTimeout(commands, Settings.AnacondaWorkingDirectory, 15);
+            var result = _shellHelper.ExecuteWithTimeout(commands, Settings.AnacondaWorkingDirectory, 15,
+                s => Console.WriteLine("ERROR: " + s),
+                s => Console.WriteLine("INFO: " + s));
 
             // Re-add audio from original
             string finalOutputFilePath = outputFilePath;
