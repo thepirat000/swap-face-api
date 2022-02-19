@@ -250,7 +250,7 @@ namespace swap_faces.Swap
                 // python inference.py --source_paths "/temp/lupi2.jpg" "/temp/fede1.jpg" --target_faces_paths /temp/guerita.JPG /temp/guerito.JPG --target_video /temp/stefan.mp4
                 var sourcePaths = string.Join(",", sourceImageFilePaths.Select(s => @"""" + s + @""""));
                 var targetFacesPathArg = targetImageFilePaths == null ? "" : "--target_faces_paths " + string.Join(",", targetImageFilePaths.Select(s => @"""" + s + @""""));
-                var superResolutionArg = request.SuperResolution ? "--use_sr" : "";
+                var superResolutionArg = request.SuperResolution ? "--use_sr True" : "";
                 outputFilePath = Path.Combine(Settings.RequestRootPath, request.RequestId, "processed.mp4");
                 return @$"python inference.py --source_paths {sourcePaths} {targetFacesPathArg} --target_video ""{inputFilePath}"" {superResolutionArg} {Settings.InferenceExtraArguments} --out_video_name ""{outputFilePath}""";
             }
