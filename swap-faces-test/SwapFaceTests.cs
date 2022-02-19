@@ -54,13 +54,25 @@ namespace swap_faces_test
             Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions() { WriteIndented = true }));
         }
 
-        /*[Test]
+        [Test]
         public async Task Test_ShellHelper_()
         {
             IShellHelper shellHelper = new ShellHelper();
-            
+            var cmds = new string[] 
+            { 
+                "dir", 
+                "timeout /t 25 /nobreak" 
+            };
+            var res = shellHelper.ExecuteWithTimeout(cmds, null, 1, err =>
+            {
+                Console.WriteLine("ERR: " + err);
+            }, 
+            txt =>
+            {
+                Console.WriteLine("INFO: " + txt);
+            });
 
 
-        }*/
+        }
     }
 }
