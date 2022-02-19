@@ -25,6 +25,7 @@ namespace swap_faces_test
             var swap = new SwapFaceProcessor(new ImageDownloader(), new YoutubeHelper(shellHelper), new FfMpegHelper(shellHelper), shellHelper);
             var request = new SwapFacesRequest()
             {
+                SuperResolution = true,
                 TargetMedia = new TargetMedia()
                 {
                     Type = TargetMedia.MediaType.VideoUrl,
