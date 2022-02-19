@@ -37,7 +37,7 @@ namespace swap_faces_test
                     new SwapFace()
                     {
                         SourceType = SwapFace.FaceSourceType.ImageUrl,
-                        SourceId = "https://i.imgur.com/amGAZFc.jpeg",
+                        SourceId = "https://i.imgur.com/NMVdnei.jpeg",
                         TargetType = SwapFace.FaceTargetType.FrameAt,
                         TargetId = "00:00:01.800"
                     }
