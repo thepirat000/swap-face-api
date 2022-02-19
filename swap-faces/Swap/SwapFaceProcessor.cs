@@ -53,7 +53,7 @@ namespace swap_faces.Swap
                 Settings.AnacondaDeactivateScript
             };
 
-            var result = _shellHelper.ExecuteWithTimeout(commands, Settings.AnacondaWorkingDirectory, 15,
+            var result = await _shellHelper.ExecuteWithTimeout(commands, Settings.AnacondaWorkingDirectory, 15,
                 s => Console.WriteLine("ERROR: " + s),
                 s => Console.WriteLine("INFO: " + s));
 

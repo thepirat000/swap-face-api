@@ -7,7 +7,7 @@ namespace swap_faces.Helpers
 {
     public class ShellHelper : IShellHelper
     {
-        public ExecuteResultEx ExecuteWithTimeout(string[] commands, string? workingDirectory = null, int timeoutMinutes = 15, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
+        public async Task<ExecuteResultEx> ExecuteWithTimeout(string[] commands, string? workingDirectory = null, int timeoutMinutes = 15, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
         {
             var output = new StringBuilder();
             var status = new ExecuteResultEx();
@@ -51,12 +51,12 @@ namespace swap_faces.Helpers
                 {
                     foreach (var command in commands)
                     {
-                        sw.WriteLine(command);
+                        await sw.WriteLineAsync(command);
                     }
                 }
             }
 
-            WaitOrKill(process, timeoutMinutes);
+            await WaitOrKill(process, timeoutMinutes);
 
             status.ExitCode = process.ExitCode;
             return status;
@@ -132,9 +132,12 @@ namespace swap_faces.Helpers
             return string.Concat(filename.Split(Path.GetInvalidFileNameChars()));
         }
 
-        private static void WaitOrKill(Process process, int timeoutMinutes)
+        private static async Task WaitOrKill(Process process, int timeoutMinutes)
         {
-            if (!process.WaitForExit(milliseconds: timeoutMinutes * 60 * 1000))
+            var cts = new CancellationTokenSource();
+            cts.CancelAfter(timeoutMinutes * 60 * 1000);
+            await process.WaitForExitAsync(cts.Token);
+            if (cts.IsCancellationRequested)
             {
                 Startup.EphemeralLog($"---------------> PROCESS EXITED AFTER TIMEOUT. Killing process.", true);
                 try
