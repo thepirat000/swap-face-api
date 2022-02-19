@@ -39,7 +39,7 @@ namespace swap_faces_test
                         SourceType = SwapFace.FaceSourceType.ImageUrl,
                         SourceId = "https://i.imgur.com/NMVdnei.jpeg",
                         TargetType = SwapFace.FaceTargetType.FrameAt,
-                        TargetId = "00:00:17.500"
+                        TargetId = "00:00:15.500"
                     }
                 }
             };
