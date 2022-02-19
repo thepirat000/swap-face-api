@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\swap-faces\swap-faces\swap-faces.csproj" />
+    <ProjectReference Include="..\swap-faces\swap-faces.csproj" />
   </ItemGroup>
 
 </Project>
