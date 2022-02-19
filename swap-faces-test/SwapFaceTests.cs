@@ -29,8 +29,8 @@ namespace swap_faces_test
                 {
                     Type = TargetMedia.MediaType.VideoUrl,
                     Id = "https://www.youtube.com/watch?v=NMvMR-jNSKg",
-                    StartAtTime = "00:00:04",
-                    EndAtTime = "00:00:33"
+                    StartAtTime = "00:00:07",
+                    EndAtTime = "00:00:27"
                 },
                 SwapFaces = new List<SwapFace>()
                 {
@@ -39,7 +39,7 @@ namespace swap_faces_test
                         SourceType = SwapFace.FaceSourceType.ImageUrl,
                         SourceId = "https://i.imgur.com/NMVdnei.jpeg",
                         TargetType = SwapFace.FaceTargetType.FrameAt,
-                        TargetId = "00:00:01.800"
+                        TargetId = "00:00:17.500"
                     }
                 }
             };
