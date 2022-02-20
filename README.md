@@ -1,2 +1,2 @@
 # swap-face-api
-An API for sber-swap
+A web API for [SberBank AI's sber-swap](https://github.com/sberbank-ai/sber-swap)
