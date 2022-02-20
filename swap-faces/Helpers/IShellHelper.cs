@@ -7,7 +7,7 @@ namespace swap_faces.Helpers
         /// <summary>
         /// Executes a list of commands on the shell, capturing stdout and stderr
         /// </summary>
-        Task<ExecuteResultEx> ExecuteWithTimeout(string[] commands, string? workingDirectory = null, int timeoutMinutes = 15, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null);
+        Task<ExecuteResult> ExecuteWithTimeout(string[] commands, string? workingDirectory = null, int timeoutMinutes = 15, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null);
         /// <summary>
         /// Executes a command on the shell, capturing stdout and stderr
         /// </summary>

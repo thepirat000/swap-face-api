@@ -28,7 +28,7 @@ namespace swap_faces_test
                 SuperResolution = true,
                 TargetMedia = new TargetMedia()
                 {
-                    Type = TargetMedia.MediaType.VideoUrl,
+                    Type = TargetMediaType.VideoUrl,
                     Id = "https://www.youtube.com/watch?v=NMvMR-jNSKg",
                     StartAtTime = "00:00:07",
                     EndAtTime = "00:00:27"
@@ -37,9 +37,9 @@ namespace swap_faces_test
                 {
                     new SwapFace()
                     {
-                        SourceType = SwapFace.FaceSourceType.ImageUrl,
+                        SourceType = FaceFromType.ImageUrl,
                         SourceId = "https://i.imgur.com/NMVdnei.jpeg",
-                        TargetType = SwapFace.FaceTargetType.FrameAt,
+                        TargetType = FaceFromType.FrameAtTarget,
                         TargetId = "00:00:15.500"
                     }
                 }
@@ -60,19 +60,20 @@ namespace swap_faces_test
             IShellHelper shellHelper = new ShellHelper();
             var cmds = new string[] 
             { 
-                "dir", 
-                "timeout /t 25 /nobreak" 
+                "dir",
+                "ping -n 10 127.0.0.1 >NUL",
+                "echo fede"
             };
-            var res = shellHelper.ExecuteWithTimeout(cmds, null, 1, err =>
+            var res = await shellHelper.ExecuteWithTimeout(cmds, null, 1, err =>
             {
-                Console.WriteLine("ERR: " + err);
+                Debug.WriteLine("ERR: " + err);
             }, 
             txt =>
             {
-                Console.WriteLine("INFO: " + txt);
+                Debug.WriteLine("INFO: " + txt);
             });
 
-
+            Assert.AreEqual(0, res.ExitCode);
         }
     }
 }

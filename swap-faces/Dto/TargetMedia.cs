@@ -2,23 +2,18 @@
 {
     public class TargetMedia
     {
-        public enum MediaType
-        {
-            /// <summary>Youtube, tiktok, etc</summary>
-            VideoUrl = 0,
-            /// <summary>File index in the form collection</summary>
-            VideoFileIndex = 1,
-            /// <summary>File name in the form collection</summary>
-            VideoFileName = 2,
-            /// <summary>File index in the form collection</summary>
-            ImageFileIndex = 3,
-            /// <summary>File name in the form collection</summary>
-            ImageFileName = 4 
-        }
         /// <summary>
         /// Target media type
         /// </summary>
-        public MediaType Type { get; set; }
+        public TargetMediaType Type { get; set; }
+        /// <summary>
+        /// True for image to image, False for Video
+        /// </summary>
+        public bool IsImage => Type == TargetMediaType.ImageFileIndex || Type == TargetMediaType.ImageFileName;
+        /// <summary>
+        /// True for Video, False for image to image
+        /// </summary>
+        public bool IsVideo => !IsImage;
         /// <summary>
         /// The video id (youtube vid, file index or file name depending on Type)
         /// </summary>

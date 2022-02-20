@@ -7,10 +7,10 @@ namespace swap_faces.Helpers
 {
     public class ShellHelper : IShellHelper
     {
-        public async Task<ExecuteResultEx> ExecuteWithTimeout(string[] commands, string? workingDirectory = null, int timeoutMinutes = 15, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
+        public async Task<ExecuteResult> ExecuteWithTimeout(string[] commands, string? workingDirectory = null, int timeoutMinutes = 15, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
         {
             var output = new StringBuilder();
-            var status = new ExecuteResultEx();
+            var status = new ExecuteResult();
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -30,8 +30,6 @@ namespace swap_faces.Helpers
                 if (!string.IsNullOrEmpty(e.Data))
                 {
                     stdErrDataReceivedCallback?.Invoke(e.Data);
-                    status.ErrorCount++;
-                    status.Errors.Add(e.Data);
                 }
             });
             process.OutputDataReceived += new DataReceivedEventHandler(delegate (object sender, DataReceivedEventArgs e)
@@ -65,9 +63,7 @@ namespace swap_faces.Helpers
         public ExecuteResult Execute(string cmd, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
         {
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
-            Startup.EphemeralLog($"Will execute: {cmd}", true);
             var escapedArgs = isWindows ? cmd : cmd.Replace("\"", "\\\"");
-            var outputBuilder = new StringBuilder();
             var process = new Process()
             {
                 StartInfo = new ProcessStartInfo
@@ -89,11 +85,6 @@ namespace swap_faces.Helpers
                     {
                         stdErrDataReceivedCallback?.Invoke(e.Data);
                     }
-                    if (stdErrDataReceivedCallback == null)
-                    {
-                        Startup.EphemeralLog(e.Data, false);
-                    }
-                    outputBuilder.AppendLine(e.Data);
                 }
             );
             process.OutputDataReceived += new DataReceivedEventHandler
@@ -104,11 +95,6 @@ namespace swap_faces.Helpers
                     {
                         stdOutDataReceivedCallback?.Invoke(e.Data);
                     }
-                    if (stdOutDataReceivedCallback == null)
-                    {
-                        Startup.EphemeralLog(e.Data, false);
-                    }
-                    outputBuilder.AppendLine(e.Data);
                 }
             );
 
@@ -121,8 +107,7 @@ namespace swap_faces.Helpers
 
             return new ExecuteResult()
             {
-                ExitCode = process.ExitCode,
-                Output = outputBuilder.ToString(),
+                ExitCode = process.ExitCode
             };
         }
 

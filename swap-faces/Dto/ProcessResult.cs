@@ -2,9 +2,9 @@
 {
     public class ProcessResult
     {
-        public string ErrorText { get; set; }
-        public bool Success => string.IsNullOrEmpty(ErrorText);
-        public string OutputText { get; set; }
+        public bool Success { get; set; }
+        public string StdError { get; set; }
+        public string StdOutput { get; set; }
         public string OutputFileName { get; set; }
     }
 }

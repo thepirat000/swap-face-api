@@ -8,7 +8,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Include="..\.editorconfig" Link=".editorconfig" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="audit.net" Version="19.0.5" />
+    <PackageReference Include="audit.net.udp" Version="19.0.5" />
     <PackageReference Include="audit.webapi" Version="19.0.5" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
 
