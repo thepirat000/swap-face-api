@@ -115,7 +115,7 @@ namespace swap_faces.Controllers
 
             LogHelper.EphemeralLog("SwapFaceProcessor Request: " + JsonSerializer.Serialize(request));
             var result = await _swapFaceProcessor.Process(request, Request.Form.Files);
-            LogHelper.EphemeralLog("SwapFaceProcessor Response: " + JsonSerializer.Serialize(Response));
+            LogHelper.EphemeralLog("SwapFaceProcessor Response: " + JsonSerializer.Serialize(result));
 
             return new SwapFacesProcessResponse()
             {
