@@ -123,7 +123,7 @@ namespace swap_faces.Controllers
             var urlDownload = fileName == null ? null : Url.ActionLink("d", null, new { r = request.RequestId, f = fileName });
             return Ok(new SwapFacesProcessResponse()
             {
-                ErrorOutput = result.StdError,
+                ErrorOutput = result.StdError.Length > 1024 ? result.StdError[^1024..] : result.StdError,
                 FileName = fileName,
                 DownloadUrl = urlDownload,
                 RequestId = request.RequestId,
