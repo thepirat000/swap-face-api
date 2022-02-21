@@ -5,9 +5,17 @@
     /// </summary>
     public enum FaceFromType
     {
-        FrameAtTarget = 0,
-        ImageUrl = 1,
-        FileIndex = 2,
-        FileName = 3
+        /// <summary>
+        /// Image from a URL
+        /// </summary>
+        ImageUrl = 0,
+        /// <summary>
+        /// File name from the Form Files Collection
+        /// </summary>
+        FileName = 1,
+        /// <summary>
+        /// Frame of the target video at given time (HH:MM:SS.FFFF)
+        /// </summary>
+        FrameAtTarget = 2
     }
 }

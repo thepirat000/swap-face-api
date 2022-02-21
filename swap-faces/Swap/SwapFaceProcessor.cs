@@ -19,7 +19,7 @@ namespace swap_faces.Swap
             _shellHelper = shellHelper;
         }
 
-        public async Task<ProcessResult> Process(SwapFacesRequest request, IFormFileCollection formFiles)
+        public async Task<ProcessResult> Process(SwapFacesRequest request, IFormFileCollection? formFiles)
         {
             // Create the file for the target video or image
             var inputFilePath = await CreateTargetMedia(request, formFiles);
@@ -102,7 +102,7 @@ namespace swap_faces.Swap
         /// </summary>
         private string TrimTargetMedia(TargetMedia targetMedia, string filePath)
         {
-            if (targetMedia.IsVideo && (targetMedia.StartAtTime != null || targetMedia.EndAtTime != null))
+            if (targetMedia.MediaType == MediaType.Video && (targetMedia.StartAtTime != null || targetMedia.EndAtTime != null))
             {
                 var start = targetMedia.StartAtTime == null ? "00:00:00" : targetMedia.StartAtTime;
                 var end = targetMedia.EndAtTime == null ? "01:00:00" : targetMedia.EndAtTime;
@@ -115,39 +115,31 @@ namespace swap_faces.Swap
         /// <summary>
         /// Creates the target media to swap (Video or Image) and returns the file generated
         /// </summary>
-        private async Task<string> CreateTargetMedia(SwapFacesRequest request, IFormFileCollection formFiles)
+        private async Task<string> CreateTargetMedia(SwapFacesRequest request, IFormFileCollection? formFiles)
         {
             // {root}/{requestId}/target/{fileName}.{extension}
             var targetMedia = request.TargetMedia;
             string filePath = null;
-            switch (targetMedia.Type)
+            switch (targetMedia.SourceType)
             {
-                case TargetMediaType.VideoUrl:
-                    // Download youtube video
+                case TargetMediaSourceType.Url:
+                    // Download video from URL
                     var videoUri = new Uri(targetMedia.Id);
                     filePath = _youtubeHelper.GetVideoFilePath(videoUri);
                     if (!File.Exists(filePath))
                     {
-                        // Avoid duration validation if video is on the cache
+                        // Duration validation only if video is not on the cache
                         var info = _youtubeHelper.GetVideoInfo(videoUri);
                         if (info.DurationSeconds > Settings.Youtube_MaxDuration)
                         {
+                            File.Delete(filePath);
                             throw new ArgumentException($"Video duration cannot be longer than {Settings.Youtube_MaxDuration}");
                         }
                         filePath = _youtubeHelper.DownloadVideoAndAudio(videoUri).VideoFileFullPath;
                     }
                     break;
-                case TargetMediaType.VideoFileName:
-                    filePath = await WriteTargetFile(request.RequestId, formFiles[targetMedia.Id], ".mp4");
-                    break;
-                case TargetMediaType.VideoFileIndex:
-                    filePath = await WriteTargetFile(request.RequestId, formFiles[int.Parse(targetMedia.Id)], ".mp4");
-                    break;
-                case TargetMediaType.ImageFileName:
-                    filePath = await WriteTargetFile(request.RequestId, formFiles[targetMedia.Id], ".jpg");
-                    break;
-                case TargetMediaType.ImageFileIndex:
-                    filePath = await WriteTargetFile(request.RequestId, formFiles[int.Parse(targetMedia.Id)], ".jpg");
+                case TargetMediaSourceType.FileName:
+                    filePath = await WriteTargetFile(request.RequestId, formFiles[targetMedia.Id], targetMedia.MediaType == MediaType.Video ? ".mp4" : ".jpg");
                     break;
                 default:
                     throw new NotImplementedException();
@@ -197,8 +189,7 @@ namespace swap_faces.Swap
                         filePath = await _imageDownloader.DownloadImageAsync(new Uri(swapFace.SourceId), Path.Combine(folder, $"FS_{i:D2}"));
                         break;
                     case FaceFromType.FileName:
-                    case FaceFromType.FileIndex:
-                        var file = swapFace.SourceType == FaceFromType.FileName ? formFiles[swapFace.SourceId] : formFiles[int.Parse(swapFace.SourceId)];
+                        var file = formFiles[swapFace.SourceId];
                         if (file != null)
                         {
                             var ext = Path.GetExtension(file.FileName);
@@ -247,8 +238,7 @@ namespace swap_faces.Swap
                         filePath = await _imageDownloader.DownloadImageAsync(new Uri(swapFace.TargetId), Path.Combine(folder, $"FT_{i:D2}"));
                         break;
                     case FaceFromType.FileName:
-                    case FaceFromType.FileIndex:
-                        var file = swapFace.TargetType == FaceFromType.FileName ? formFiles[swapFace.TargetId] : formFiles[int.Parse(swapFace.TargetId)];
+                        var file = formFiles[swapFace.TargetId];
                         var ext = Path.GetExtension(file.FileName);
                         if (string.IsNullOrEmpty(ext))
                         {
@@ -270,7 +260,7 @@ namespace swap_faces.Swap
 
         private string GetInferenceCommand(SwapFacesRequest request, string inputFilePath, string[] sourceImageFilePaths, string[] targetImageFilePaths, string outputFilePath)
         {
-            if (request.TargetMedia.IsImage)
+            if (request.TargetMedia.MediaType == MediaType.Image)
             {
                 // Image target
                 // python inference.py --source_paths "a.jpg" --target_image {PATH_TO_IMAGE} --target_faces_paths "b.jpg" --image_to_image True 
@@ -293,7 +283,7 @@ namespace swap_faces.Swap
         private string GetOutputFilePath(SwapFacesRequest request)
         {
             return Path.Combine(Settings.RequestRootPath, request.RequestId,
-                "processed" + (request.SuperResolution ? "_sr" : "") + (request.TargetMedia.IsImage ? ".jpg" : ".mp4")) ;
+                "processed" + (request.SuperResolution ? "_sr" : "") + (request.TargetMedia.MediaType == MediaType.Video ? ".mp4" : ".jpg")) ;
         }
 
         public string? GetFilePathForDownload(string requestId, string fileName)

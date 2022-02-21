@@ -28,7 +28,8 @@ namespace swap_faces_test
                 SuperResolution = true,
                 TargetMedia = new TargetMedia()
                 {
-                    Type = TargetMediaType.VideoUrl,
+                    MediaType = MediaType.Video,
+                    SourceType = TargetMediaSourceType.Url,
                     Id = "https://www.youtube.com/watch?v=NMvMR-jNSKg",
                     StartAtTime = "00:00:07",
                     EndAtTime = "00:00:27"

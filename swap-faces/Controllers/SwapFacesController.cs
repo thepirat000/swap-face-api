@@ -27,7 +27,6 @@ namespace swap_faces.Controllers
         private static readonly HashSet<string> ValidTypes = new HashSet<string>(new string[] { "video", "image" }, StringComparer.InvariantCultureIgnoreCase);
         
         private static readonly Regex ValidateUrl = new Regex(@"^http(s)?:\/\/", RegexOptions.IgnoreCase);
-        private static readonly Regex ValidateIndex = new Regex(@"^\d{1,2}$");
         private static readonly Regex ValidateTime = new Regex(@"^(\d{1,2}:)?\d{2}:\d{2}(\.\d*)?$");
         private static readonly Regex ValidateRequestId = new Regex(@"^[0-9a-f]{8}$");
 
@@ -81,6 +80,7 @@ namespace swap_faces.Controllers
                 TargetMedia = new TargetMedia()
                 {
                     Id = targetMedia,
+                    MediaType = isVideo ? MediaType.Video : MediaType.Image,
                     StartAtTime = targetStartTime,
                     EndAtTime = targetEndTime
                 },
@@ -88,16 +88,13 @@ namespace swap_faces.Controllers
             };
             if (ValidateUrl.IsMatch(targetMedia))
             {
-                request.TargetMedia.Type = TargetMediaType.VideoUrl;
-            }
-            else if (ValidateIndex.IsMatch(targetMedia))
-            {
-                request.TargetMedia.Type = isVideo ? TargetMediaType.VideoFileIndex : TargetMediaType.ImageFileIndex;
+                request.TargetMedia.SourceType = TargetMediaSourceType.Url;
             }
             else
             {
-                request.TargetMedia.Type = isVideo ? TargetMediaType.VideoFileName : TargetMediaType.ImageFileName;
+                request.TargetMedia.SourceType = TargetMediaSourceType.FileName;
             }
+
             // Source and Target faces
             var srcFaces = sourceFaces.Split(',');
             var tgtFaces = targetFaces?.Split(',');
@@ -105,14 +102,13 @@ namespace swap_faces.Controllers
             {
                 var srcFace = srcFaces[i];
                 var tgtFace = tgtFaces != null && tgtFaces.Length >= i ? tgtFaces[i] : null;
-                var swapFace = new SwapFace()
+                request.SwapFaces.Add(new SwapFace()
                 {
                     SourceId = srcFace,
                     SourceType = GetFaceType(srcFace)!.Value,
                     TargetId = tgtFace,
                     TargetType = GetFaceType(tgtFace)
-                };
-                request.SwapFaces.Add(swapFace);
+                });
             }
 
             LogHelper.EphemeralLog("SwapFaceProcessor Request: " + JsonSerializer.Serialize(request));
@@ -165,10 +161,6 @@ namespace swap_faces.Controllers
             if (ValidateUrl.IsMatch(id))
             {
                 return FaceFromType.ImageUrl;
-            }
-            if (ValidateIndex.IsMatch(id))
-            {
-                return FaceFromType.FileIndex;
             }
             if (ValidateTime.IsMatch(id))
             {
