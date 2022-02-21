@@ -50,7 +50,7 @@ namespace swap_faces
 
         public void Configure(IApplicationBuilder app)
         {
-            app.UseHttpsRedirection();
+            // app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseCors(options => options.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
@@ -60,6 +60,7 @@ namespace swap_faces
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "SwapFaces API");
             });
+            ConfigureAuditNet();
 
             Directory.CreateDirectory(Settings.RootPath);
             Directory.CreateDirectory(Settings.YoutubeCacheRootPath);
