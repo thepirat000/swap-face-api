@@ -64,6 +64,8 @@ namespace swap_faces.Helpers
         {
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             var escapedArgs = isWindows ? cmd : cmd.Replace("\"", "\\\"");
+            var outputBuilder = new StringBuilder();
+
             var process = new Process()
             {
                 StartInfo = new ProcessStartInfo
@@ -84,6 +86,7 @@ namespace swap_faces.Helpers
                     if (!string.IsNullOrWhiteSpace(e.Data))
                     {
                         stdErrDataReceivedCallback?.Invoke(e.Data);
+                        outputBuilder.AppendLine(e.Data);
                     }
                 }
             );
@@ -94,6 +97,7 @@ namespace swap_faces.Helpers
                     if (!string.IsNullOrWhiteSpace(e.Data))
                     {
                         stdOutDataReceivedCallback?.Invoke(e.Data);
+                        outputBuilder.AppendLine(e.Data);
                     }
                 }
             );
@@ -107,7 +111,8 @@ namespace swap_faces.Helpers
 
             return new ExecuteResult()
             {
-                ExitCode = process.ExitCode
+                ExitCode = process.ExitCode,
+                Output = outputBuilder.ToString()
             };
         }
 

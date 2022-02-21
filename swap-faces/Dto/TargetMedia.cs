@@ -21,10 +21,10 @@
         /// <summary>
         /// Starting on frame at, format: "HH:MM:SS.FFFF". (NULL to process the whole video, Ignored for image)
         /// </summary>
-        public string StartAtTime { get; set; }
+        public string? StartAtTime { get; set; }
         /// <summary>
         /// Ending on frame at, format: "HH:MM:SS.FFFF". (NULL to process the whole video, Ignored for image)
         /// </summary>
-        public string EndAtTime { get; set; }
+        public string? EndAtTime { get; set; }
     }
 }
