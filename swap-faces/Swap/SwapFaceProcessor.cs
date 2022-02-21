@@ -128,7 +128,7 @@ namespace swap_faces.Swap
                     filePath = _youtubeHelper.GetVideoFilePath(videoUri);
                     if (!File.Exists(filePath))
                     {
-                        // Duration validation only if video is not on the cache
+                        // Duration validation on URL
                         var info = _youtubeHelper.GetVideoInfo(videoUri);
                         if (info.DurationSeconds > Settings.Youtube_MaxDuration)
                         {
@@ -144,6 +144,17 @@ namespace swap_faces.Swap
                 default:
                     throw new NotImplementedException();
             }
+            if (targetMedia.MediaType == MediaType.Video && File.Exists(filePath))
+            {
+                // Validate duration on file
+                var duration = _ffMpegHelper.GetVideoDuration(filePath);
+                if (duration > Settings.Youtube_MaxDuration)
+                {
+                    File.Delete(filePath);
+                    throw new ArgumentException($"Video duration cannot be longer than {Settings.Youtube_MaxDuration}");
+                }
+            }
+
             return filePath;
         }
 

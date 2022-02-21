@@ -14,5 +14,9 @@
         /// Changes the audio of a given input video by the audtio given in the input audio
         /// </summary>
         void MergeAudio(string inputVideoFilePath, string audioFilePath, string outputFilePath);
+        /// <summary>
+        /// Returns the video duration in seconds for the given video file
+        /// </summary>
+        double GetVideoDuration(string inputVideoFilePath);
     }
 }

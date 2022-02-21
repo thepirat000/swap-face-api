@@ -19,6 +19,14 @@ namespace swap_faces_test
         }
 
         [Test]
+        public void Test()
+        {
+            IFfMpegHelper ff = new FfMpegHelper(new ShellHelper());
+            var dur = ff.GetVideoDuration(@"d:\video\lisztr2day1.mp4");
+            var dur0 = ff.GetVideoDuration(@"d:\video\lisztr2day1asdfadf.mp4");
+        }
+
+        [Test]
         public async Task Test_Integration_YTVideo_ImageUrl_FrameAt_Trim_SingleFace()
         {
             var shellHelper = new ShellHelper();

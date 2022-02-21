@@ -41,5 +41,21 @@
                 throw new Exception(shellResult.Output);
             }
         }
+
+        public double GetVideoDuration(string inputVideoFilePath)
+        {
+            // ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "c:\x\y.mp4"
+            var ffmpegCmd = @$"ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ""{inputVideoFilePath}""";
+            var shellResult = _shellHelper.Execute(ffmpegCmd);
+            if (shellResult.ExitCode != 0)
+            {
+                throw new Exception(shellResult.Output);
+            }
+            if (double.TryParse(shellResult.Output, out double duration))
+            {
+                return duration;
+            }
+            return 0d;
+        }
     }
 }
