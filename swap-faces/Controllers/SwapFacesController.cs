@@ -117,10 +117,10 @@ namespace swap_faces.Controllers
             var result = await _swapFaceProcessor.Process(request, Request.Form.Files);
             LogHelper.EphemeralLog("SwapFaceProcessor Response: " + JsonSerializer.Serialize(result));
 
-            return new SwapFacesProcessResponse()
+            return Ok(new SwapFacesProcessResponse()
             {
                 ProcessResult = result
-            };
+            });
         }
 
         private FaceFromType? GetFaceType(string? id)
