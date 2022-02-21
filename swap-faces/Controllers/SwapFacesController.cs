@@ -119,10 +119,13 @@ namespace swap_faces.Controllers
             var result = await _swapFaceProcessor.Process(request, Request.Form.Files);
             LogHelper.EphemeralLog("SwapFaceProcessor Response: " + JsonSerializer.Serialize(result));
 
+            var fileName = result.Success == true ? Path.GetFileName(result.OutputFileName) : null;
+            var urlDownload = fileName == null ? null : Url.ActionLink("d", null, new { r = request.RequestId, f = fileName });
             return Ok(new SwapFacesProcessResponse()
             {
                 ErrorOutput = result.StdError,
-                FileName = result.Success == true ? Path.GetFileName(result.OutputFileName) : null,
+                FileName = fileName,
+                DownloadUrl = urlDownload,
                 RequestId = request.RequestId,
                 Success = result.Success
             });
