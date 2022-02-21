@@ -33,8 +33,8 @@
 
         public void MergeAudio(string inputVideoFilePath, string audioFilePath, string outputFilePath)
         {
-            // ffmpeg -i C:\GIT\sber-swap\examples\results\result.mp4 -i C:/temp/chantaje1_trim.mp4 -c:v copy -map 0:v:0 -map 1:a:0 C:/temp/chantaje1_lupi.mp4
-            var ffmpegCmd = @$"ffmpeg -i ""{inputVideoFilePath}"" -i ""{audioFilePath}"" -c:v copy -map 0:v:0 -map 1:a:0 -y ""{outputFilePath}""";
+            // ffmpeg -i C:\GIT\sber-swap\examples\results\result.mp4 -i C:/temp/chantaje1_trim.mp4 -c:v copy -map 0:v:0? -map 1:a:0 C:/temp/chantaje1_lupi.mp4
+            var ffmpegCmd = @$"ffmpeg -i ""{inputVideoFilePath}"" -i ""{audioFilePath}"" -c:v copy -map 0:v:0 -map 1:a:0? -y ""{outputFilePath}""";
             var shellResult = _shellHelper.Execute(ffmpegCmd);
             if (shellResult.ExitCode != 0)
             {
