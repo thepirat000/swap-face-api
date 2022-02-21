@@ -2,6 +2,9 @@
 {
     public class SwapFacesProcessResponse
     {
-        public ProcessResult ProcessResult { get; set; }
+        public string RequestId { get; set; }
+        public bool Success { get; set; }
+        public string? FileName { get; set; }
+        public string ErrorOutput { get; set; }
     }
 }

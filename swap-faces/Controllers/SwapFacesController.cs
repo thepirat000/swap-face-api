@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Cors;
+﻿using Audit.WebApi;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using swap_faces.Dto;
 using swap_faces.Helpers;
@@ -28,10 +29,11 @@ namespace swap_faces.Controllers
         private static readonly Regex ValidateUrl = new Regex(@"^http(s)?:\/\/", RegexOptions.IgnoreCase);
         private static readonly Regex ValidateIndex = new Regex(@"^\d{1,2}$");
         private static readonly Regex ValidateTime = new Regex(@"^(\d{1,2}:)?\d{2}:\d{2}(\.\d*)?$");
+        private static readonly Regex ValidateRequestId = new Regex(@"^[0-9a-f]{8}$");
 
-        [Route("p/{type}")]
-        [HttpPost()]
+        [HttpPost("p/{type}")]
         [Produces("application/json")]
+        [AuditApi(IncludeResponseBody = true)]
         public async Task<ActionResult<SwapFacesProcessResponse>> Process(
             [FromRoute] string type, 
             [FromForm(Name = "tm")] string targetMedia,
@@ -119,9 +121,37 @@ namespace swap_faces.Controllers
 
             return Ok(new SwapFacesProcessResponse()
             {
-                ProcessResult = result
+                ErrorOutput = result.StdError,
+                FileName = result.Success == true ? Path.GetFileName(result.OutputFileName) : null,
+                RequestId = request.RequestId,
+                Success = result.Success
             });
         }
+
+        [HttpGet("d/{requestId}")]
+        [AuditApi(IncludeResponseBody = false)]
+        public async Task<ActionResult> Download([FromRoute] string requestId, [FromQuery(Name = "f")] string fileName)
+        {
+            if (!ValidateRequestId.IsMatch(requestId))
+            {
+                return BadRequest("Invalid request ID");
+            }
+            if (string.IsNullOrEmpty(fileName))
+            {
+                return BadRequest("Must provide a file name");
+            }
+
+            var filePath = _swapFaceProcessor.GetFilePathForDownload(requestId, fileName);
+            if (filePath != null)
+            {
+                var ext = Path.GetExtension(filePath);
+                var contentType = ext.Equals(".mp4", StringComparison.InvariantCultureIgnoreCase) ? "video/mp4" : "image/jpeg";
+                return PhysicalFile(filePath, contentType, fileName);
+            }
+
+            return Problem("File not found");
+        }
+
 
         private FaceFromType? GetFaceType(string? id)
         {

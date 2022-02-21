@@ -292,9 +292,18 @@ namespace swap_faces.Swap
 
         private string GetOutputFilePath(SwapFacesRequest request)
         {
-            return Path.Combine(Settings.RequestRootPath, request.RequestId, 
-                "processed" + (request.SuperResolution ? "_sr" : "") + (request.TargetMedia.IsImage ? ".jpg" : ".mp4")) ;
+            return Path.Combine(Settings.RequestRootPath, request.RequestId,
+                $"processed_{request.RequestId}" + (request.SuperResolution ? "_sr" : "") + (request.TargetMedia.IsImage ? ".jpg" : ".mp4")) ;
         }
 
+        public string? GetFilePathForDownload(string requestId, string fileName)
+        {
+            if (fileName != _shellHelper.SanitizeFilename(fileName))
+            {
+                throw new Exception("Invalid file name, f*ck off");
+            }
+            var filePath = Path.Combine(Settings.RequestRootPath, requestId, fileName);
+            return File.Exists(filePath) ? filePath : null;
+        }
     }
 }
