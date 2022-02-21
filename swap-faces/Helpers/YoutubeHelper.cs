@@ -63,8 +63,6 @@ namespace swap_faces.Helpers
 
         public YoutubeVideoResponse DownloadVideoAndAudio(Uri videoUri)
         {
-            // https://youtu.be/{vid}
-            // https://www.tiktok.com/{user}/video/{vid}
             var url = videoUri.ToString();
             var result = new YoutubeVideoResponse();
             var fileName = GetVideoFilePath(videoUri);
@@ -73,7 +71,7 @@ namespace swap_faces.Helpers
                 result.VideoFileFullPath = fileName;
                 return result;
             }
-            var cmd = @$"{Settings.Youtube_Dl_Tool} -f ""bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]"" --max-filesize 50M -o ""{fileName}"" --no-check-certificate ""{url}""";
+            var cmd = @$"{Settings.Youtube_Dl_Tool} -f ""bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/[ext=mp4]"" --max-filesize 50M -o ""{fileName}"" --no-check-certificate ""{url}""";
 
             var shellResult = _shellHelper.Execute(cmd);
             if (shellResult.ExitCode != 0)
