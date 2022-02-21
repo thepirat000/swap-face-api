@@ -31,14 +31,14 @@ namespace swap_faces.Helpers
                 throw new Exception($"{Settings.Youtube_Dl_Tool} -s exited with code {shellResult.ExitCode}.\n{shellResult.Output}");
             }
             var dataArray = shellResult.Output.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries);
-            if (dataArray.Length < 2)
+            if (dataArray.Length < 1)
             {
                 throw new Exception($"{Settings.Youtube_Dl_Tool} -s returned unformatted data {shellResult.ExitCode}.\n{shellResult.Output}");
             }
             var info = new YoutubeVideoInfo()
             {
                 Filename = dataArray[0].Trim(),
-                Duration = dataArray[1]
+                Duration = dataArray.Length > 1 ? dataArray[1] : "0"
             };
             if (info.Filename.Contains('.'))
             {
