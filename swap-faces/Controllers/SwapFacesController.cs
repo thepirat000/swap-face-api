@@ -120,7 +120,7 @@ namespace swap_faces.Controllers
             LogHelper.EphemeralLog("SwapFaceProcessor Response: " + JsonSerializer.Serialize(result));
 
             var fileName = result.Success == true ? Path.GetFileName(result.OutputFileName) : null;
-            var urlDownload = fileName == null ? null : Url.ActionLink("Download", null, new { requestId = request.RequestId, fileName = fileName });
+            var urlDownload = fileName == null ? null : Url.ActionLink("Download", null, new { r = request.RequestId, f = fileName });
             return Ok(new SwapFacesProcessResponse()
             {
                 ErrorOutput = result.StdError.Length > 4096 ? result.StdError[^4096..] : result.StdError,
