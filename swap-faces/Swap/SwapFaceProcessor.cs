@@ -23,20 +23,24 @@ namespace swap_faces.Swap
         {
             // Create the file for the target video or image
             var inputFilePath = await CreateTargetMedia(request, formFiles);
+            var originalTargetFilePath = inputFilePath;
+            // Trim the video if needed
+            inputFilePath = TrimTargetMedia(request.TargetMedia, inputFilePath);
+
             if (!File.Exists(inputFilePath))
             {
                 throw new Exception("Unknown error creating target media");
             }
 
             // Create the file(s) for the source face image(s)
-            var sourceImageFilePaths = await CreateSourceImages(request, formFiles, inputFilePath);
+            var sourceImageFilePaths = await CreateSourceImages(request, formFiles, originalTargetFilePath);
             if (sourceImageFilePaths.Any(path => !File.Exists(path)))
             {
                 throw new Exception("Unknown error creating source images");
             }
 
             // Create the file(s) for the target face image(s)
-            var targetImageFilePaths = await CreateTargetImages(request, formFiles, inputFilePath);
+            var targetImageFilePaths = await CreateTargetImages(request, formFiles, originalTargetFilePath);
             if (targetImageFilePaths.Any(path => !File.Exists(path)))
             {
                 throw new Exception("Unknown error creating target images");
@@ -74,14 +78,14 @@ namespace swap_faces.Swap
 
             // Re-add audio from original
             string finalOutputFilePath = outputFilePath;
-            if (File.Exists(outputFilePath))
+            if (File.Exists(finalOutputFilePath))
             {
                 finalOutputFilePath = Path.Combine(Path.GetDirectoryName(outputFilePath), Path.GetFileNameWithoutExtension(outputFilePath) + "_final" + Path.GetExtension(outputFilePath));
                 _ffMpegHelper.MergeAudio(outputFilePath, inputFilePath, finalOutputFilePath);
                 // Remove temp video file
                 File.Delete(outputFilePath);
             }
-
+  
             var fileInfo = new FileInfo(finalOutputFilePath);
 
             return new ProcessResult()
@@ -93,6 +97,21 @@ namespace swap_faces.Swap
             };
         }
 
+        /// <summary>
+        /// Trims the target media if needed and return the final target video path
+        /// </summary>
+        private string TrimTargetMedia(TargetMedia targetMedia, string filePath)
+        {
+            if (targetMedia.IsVideo && (targetMedia.StartAtTime != null || targetMedia.EndAtTime != null))
+            {
+                var start = targetMedia.StartAtTime == null ? "00:00:00" : targetMedia.StartAtTime;
+                var end = targetMedia.EndAtTime == null ? "01:00:00" : targetMedia.EndAtTime;
+                var trimFilePath = Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath) + "_trim" + Path.GetExtension(filePath));
+                _ffMpegHelper.TrimVideo(filePath, start, end, trimFilePath);
+                return trimFilePath;
+            }
+            return filePath;
+        }
         /// <summary>
         /// Creates the target media to swap (Video or Image) and returns the file generated
         /// </summary>
@@ -132,15 +151,6 @@ namespace swap_faces.Swap
                     break;
                 default:
                     throw new NotImplementedException();
-            }
-            // Trim the video if needed
-            if (targetMedia.IsVideo && (targetMedia.StartAtTime != null || targetMedia.EndAtTime != null))
-            {
-                var start = targetMedia.StartAtTime == null ? "00:00:00" : targetMedia.StartAtTime;
-                var end = targetMedia.EndAtTime == null ? "01:00:00" : targetMedia.EndAtTime;
-                var trimFilePath = Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath) + "_trim" + Path.GetExtension(filePath));
-                _ffMpegHelper.TrimVideo(filePath, start, end, trimFilePath);
-                filePath = trimFilePath;
             }
             return filePath;
         }
