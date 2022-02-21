@@ -61,8 +61,16 @@ namespace swap_faces.Swap
                 commands, 
                 Settings.AnacondaWorkingDirectory, 
                 15,
-                e => sbStdErr.AppendLine(e),
-                o => sbStdOut.AppendLine(o));
+                e => 
+                { 
+                    sbStdErr.AppendLine(e);
+                    Startup.EphemeralLog("STDERR: " + e);
+                },
+                o => 
+                { 
+                    sbStdOut.AppendLine(o);
+                    Startup.EphemeralLog("STDOUT: " + o);
+                });
 
             // Re-add audio from original
             string finalOutputFilePath = outputFilePath;
