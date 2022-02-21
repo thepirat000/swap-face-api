@@ -9,6 +9,7 @@ namespace swap_faces.Helpers
     {
         public async Task<ExecuteResult> ExecuteWithTimeout(string[] commands, string? workingDirectory = null, int timeoutMinutes = 15, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
         {
+            LogHelper.EphemeralLog("Will execute commands: " + string.Join(Environment.NewLine, commands));
             var output = new StringBuilder();
             var status = new ExecuteResult();
             var process = new Process
@@ -62,6 +63,7 @@ namespace swap_faces.Helpers
 
         public ExecuteResult Execute(string cmd, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
         {
+            LogHelper.EphemeralLog("Will execute: " + cmd);
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             var escapedArgs = isWindows ? cmd : cmd.Replace("\"", "\\\"");
             var outputBuilder = new StringBuilder();
@@ -129,7 +131,7 @@ namespace swap_faces.Helpers
             await process.WaitForExitAsync(cts.Token);
             if (cts.IsCancellationRequested)
             {
-                Startup.EphemeralLog($"---------------> PROCESS EXITED AFTER TIMEOUT. Killing process.", true);
+                LogHelper.EphemeralLog($"---------------> PROCESS EXITED AFTER TIMEOUT. Killing process.", true);
                 try
                 {
                     process.Kill(true);

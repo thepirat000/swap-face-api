@@ -45,7 +45,7 @@ namespace swap_faces.Swap
             // Generate the output video or image
             var outputFilePath = GetOutputFilePath(request);
             var inferenceCommand = GetInferenceCommand(request, inputFilePath, sourceImageFilePaths, targetImageFilePaths, outputFilePath);
-            Startup.EphemeralLog($"Command: {inferenceCommand}");
+            LogHelper.EphemeralLog($"Inference Command: {inferenceCommand}");
 
             // Execure Conda code
             var commands = new string[]
@@ -64,12 +64,12 @@ namespace swap_faces.Swap
                 e => 
                 { 
                     sbStdErr.AppendLine(e);
-                    Startup.EphemeralLog("STDERR: " + e);
+                    LogHelper.EphemeralLog("STDERR: " + e);
                 },
                 o => 
                 { 
                     sbStdOut.AppendLine(o);
-                    Startup.EphemeralLog("STDOUT: " + o);
+                    LogHelper.EphemeralLog("STDOUT: " + o);
                 });
 
             // Re-add audio from original

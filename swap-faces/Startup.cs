@@ -88,13 +88,9 @@ namespace swap_faces
                         return new byte[0];
                     }));
 
-            EphemeralLog($"SwapFaces started at {DateTime.Now}", true);
+            LogHelper.EphemeralLog($"SwapFaces started at {DateTime.Now}", true);
         }
 
-        public static void EphemeralLog(string text, bool important = false)
-        {
-            //Debug.WriteLine(text);
-            AuditScope.Log("Ephemeral", new { Status = text });
-        }
+        
     }
 }
