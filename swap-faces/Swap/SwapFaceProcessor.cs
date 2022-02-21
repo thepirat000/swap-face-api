@@ -293,7 +293,7 @@ namespace swap_faces.Swap
         private string GetOutputFilePath(SwapFacesRequest request)
         {
             return Path.Combine(Settings.RequestRootPath, request.RequestId,
-                $"processed_{request.RequestId}" + (request.SuperResolution ? "_sr" : "") + (request.TargetMedia.IsImage ? ".jpg" : ".mp4")) ;
+                "processed" + (request.SuperResolution ? "_sr" : "") + (request.TargetMedia.IsImage ? ".jpg" : ".mp4")) ;
         }
 
         public string? GetFilePathForDownload(string requestId, string fileName)

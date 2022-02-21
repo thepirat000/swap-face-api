@@ -146,7 +146,7 @@ namespace swap_faces.Controllers
             {
                 var ext = Path.GetExtension(filePath);
                 var contentType = ext.Equals(".mp4", StringComparison.InvariantCultureIgnoreCase) ? "video/mp4" : "image/jpeg";
-                return PhysicalFile(filePath, contentType, fileName);
+                return PhysicalFile(filePath, contentType, $"{requestId}_{fileName}");
             }
 
             return Problem("File not found");
