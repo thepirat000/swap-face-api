@@ -264,16 +264,16 @@ namespace swap_faces.Swap
             {
                 // Image target
                 // python inference.py --source_paths "a.jpg" --target_image {PATH_TO_IMAGE} --target_faces_paths "b.jpg" --image_to_image True 
-                var sourcePaths = string.Join(",", sourceImageFilePaths.Select(s => @"""" + s + @""""));
-                var targetFacesPath = targetImageFilePaths == null ? "" : "--target_faces_paths " + string.Join(",", targetImageFilePaths.Select(s => @"""" + s + @""""));
+                var sourcePaths = string.Join(" ", sourceImageFilePaths.Select(s => @"""" + s + @""""));
+                var targetFacesPath = targetImageFilePaths == null ? "" : "--target_faces_paths " + string.Join(" ", targetImageFilePaths.Select(s => @"""" + s + @""""));
                 return @$"python inference.py --source_paths {sourcePaths} --target_image ""{outputFilePath}"" --image_to_image True --out_image_name ""{outputFilePath}""";
             }
             else
             {
                 // Video target
                 // python inference.py --source_paths "/temp/lupi2.jpg" "/temp/fede1.jpg" --target_faces_paths /temp/guerita.JPG /temp/guerito.JPG --target_video /temp/stefan.mp4
-                var sourcePaths = string.Join(",", sourceImageFilePaths.Select(s => @"""" + s + @""""));
-                var targetFacesPathArg = targetImageFilePaths == null ? "" : "--target_faces_paths " + string.Join(",", targetImageFilePaths.Select(s => @"""" + s + @""""));
+                var sourcePaths = string.Join(" ", sourceImageFilePaths.Select(s => @"""" + s + @""""));
+                var targetFacesPathArg = targetImageFilePaths == null ? "" : "--target_faces_paths " + string.Join(" ", targetImageFilePaths.Select(s => @"""" + s + @""""));
                 var superResolutionArg = request.SuperResolution ? "--use_sr True" : "";
                 return @$"python inference.py --source_paths {sourcePaths} {targetFacesPathArg} --target_video ""{inputFilePath}"" {superResolutionArg} {Settings.InferenceExtraArguments} --out_video_name ""{outputFilePath}""";
             }
