@@ -128,9 +128,9 @@ namespace swap_faces.Controllers
             });
         }
 
-        [HttpGet("d/{requestId}")]
+        [HttpGet("d")]
         [AuditApi(IncludeResponseBody = false)]
-        public async Task<ActionResult> Download([FromRoute] string requestId, [FromQuery(Name = "f")] string fileName)
+        public async Task<ActionResult> Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "f")] string fileName)
         {
             if (!ValidateRequestId.IsMatch(requestId))
             {
