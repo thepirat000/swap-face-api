@@ -1,9 +1,9 @@
-using swap_faces;
+using SwapFaces;
 using NUnit.Framework;
 using System.Threading.Tasks;
-using swap_faces.Swap;
-using swap_faces.Helpers;
-using swap_faces.Dto;
+using SwapFaces.Swap;
+using SwapFaces.Helpers;
+using SwapFaces.Dto;
 using System.Collections.Generic;
 using System;
 using System.Text.Json;

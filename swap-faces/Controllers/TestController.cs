@@ -4,7 +4,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text.Json;
 
-namespace swap_faces.Controllers
+namespace SwapFaces.Controllers
 {
     [Route("[controller]")]
     [EnableCors]

@@ -1,4 +1,4 @@
-﻿namespace swap_faces.Helpers
+﻿namespace SwapFaces.Helpers
 {
     public interface IImageDownloader
     {

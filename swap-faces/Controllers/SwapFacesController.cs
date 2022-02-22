@@ -1,14 +1,14 @@
 ﻿using Audit.WebApi;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
-using swap_faces.Dto;
-using swap_faces.Helpers;
-using swap_faces.Swap;
+using SwapFaces.Dto;
+using SwapFaces.Helpers;
+using SwapFaces.Swap;
 using System.IO;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
-namespace swap_faces.Controllers
+namespace SwapFaces.Controllers
 {
     [Route("swap")]
     [EnableCors]

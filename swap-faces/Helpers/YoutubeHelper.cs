@@ -1,8 +1,8 @@
-﻿using swap_faces.Dto;
+﻿using SwapFaces.Dto;
 using System.Collections.Concurrent;
 using System.Text.RegularExpressions;
 
-namespace swap_faces.Helpers
+namespace SwapFaces.Helpers
 {
     public class YoutubeHelper : IYoutubeHelper
     {

@@ -1,4 +1,4 @@
-using swap_faces;
+using SwapFaces;
 
 var builder = WebApplication.CreateBuilder(args);
 var startup = new Startup(builder.Configuration);

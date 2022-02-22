@@ -1,6 +1,6 @@
 ﻿using Audit.Core;
 
-namespace swap_faces.Helpers
+namespace SwapFaces.Helpers
 {
     public static class LogHelper
     {

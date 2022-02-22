@@ -1,9 +1,9 @@
-﻿using swap_faces.Dto;
+﻿using SwapFaces.Dto;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 using System.Text;
 
-namespace swap_faces.Helpers
+namespace SwapFaces.Helpers
 {
     public class ShellHelper : IShellHelper
     {

@@ -1,6 +1,6 @@
-﻿using swap_faces.Dto;
+﻿using SwapFaces.Dto;
 
-namespace swap_faces.Swap
+namespace SwapFaces.Swap
 {
     public interface ISwapFaceProcessor
     {

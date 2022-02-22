@@ -1,8 +1,8 @@
-﻿using swap_faces.Dto;
-using swap_faces.Helpers;
+﻿using SwapFaces.Dto;
+using SwapFaces.Helpers;
 using System.Text;
 
-namespace swap_faces.Swap
+namespace SwapFaces.Swap
 {
     public class SwapFaceProcessor : ISwapFaceProcessor
     {

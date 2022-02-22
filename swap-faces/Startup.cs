@@ -1,12 +1,12 @@
 ﻿using Audit.Core;
 using Microsoft.OpenApi.Models;
-using swap_faces.Helpers;
-using swap_faces.Swap;
+using SwapFaces.Helpers;
+using SwapFaces.Swap;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json.Serialization;
 
-namespace swap_faces
+namespace SwapFaces
 {
     public class Startup
     {

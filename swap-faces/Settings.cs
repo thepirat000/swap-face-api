@@ -1,4 +1,4 @@
-﻿namespace swap_faces
+﻿namespace SwapFaces
 {
     public class Settings
     {

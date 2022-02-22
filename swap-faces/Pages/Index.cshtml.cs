@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
-namespace swap_faces.Pages
+namespace SwapFaces.Pages
 {
     public class IndexModel : PageModel
     {

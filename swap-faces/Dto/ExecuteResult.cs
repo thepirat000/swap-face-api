@@ -1,4 +1,4 @@
-﻿namespace swap_faces.Dto
+﻿namespace SwapFaces.Dto
 {
     public class ExecuteResult
     {
