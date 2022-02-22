@@ -292,6 +292,11 @@ namespace swap_faces.Swap
             {
                 // Image target
                 // python inference.py --source_paths "a.jpg" --target_image {PATH_TO_IMAGE} --target_faces_paths "b.jpg" --image_to_image True 
+                if (string.IsNullOrEmpty(targetFacesPathArg))
+                {
+                    // Workaround. For image to image, if no target face paths indicated, it should be the same as the target image (otherwise it fails)
+                    targetFacesPathArg = @$"--target_faces_paths ""{inputFilePath}""";
+                }
                 return @$"python inference.py --source_paths {sourcePaths} {targetFacesPathArg} --target_image ""{inputFilePath}"" {superResolutionArg} {Settings.InferenceExtraArguments} --image_to_image True --out_image_name ""{outputFilePath}""";
             }
             else
