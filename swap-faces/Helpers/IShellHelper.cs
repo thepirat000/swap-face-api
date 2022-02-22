@@ -16,5 +16,7 @@ namespace SwapFaces.Helpers
         /// Sanitizes a file name
         /// </summary>
         string SanitizeFilename(string filename);
+
+
     }
 }

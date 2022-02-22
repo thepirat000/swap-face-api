@@ -5,6 +5,7 @@ using SwapFaces.Swap;
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Builder;
 
 namespace SwapFaces
 {
@@ -27,7 +28,7 @@ namespace SwapFaces
                 });
 
             services.AddHttpContextAccessor();
-
+            services.AddRazorPages();
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo()
@@ -60,8 +61,10 @@ namespace SwapFaces
             {
                 c.SwaggerEndpoint("/swagger/v1/swagger.json", "SwapFaces API");
             });
-            ConfigureAuditNet();
+            (app as WebApplication).MapRazorPages();
 
+            ConfigureAuditNet();
+            
             Directory.CreateDirectory(Settings.RootPath);
             Directory.CreateDirectory(Settings.YoutubeCacheRootPath);
             Directory.CreateDirectory(Settings.RequestRootPath);

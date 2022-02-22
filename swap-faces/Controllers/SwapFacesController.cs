@@ -24,17 +24,26 @@ namespace SwapFaces.Controllers
             _swapFaceProcessor = swapFaceProcessor;
         }
 
-        private static readonly HashSet<string> ValidTypes = new HashSet<string>(new string[] { "video", "image" }, StringComparer.InvariantCultureIgnoreCase);
-        
         private static readonly Regex ValidateUrl = new Regex(@"^http(s)?:\/\/", RegexOptions.IgnoreCase);
         private static readonly Regex ValidateTime = new Regex(@"^(\d{1,2}:)?(\d{1,2}:)?\d{1,2}(\.\d*)?$");
         private static readonly Regex ValidateRequestId = new Regex(@"^[0-9a-f]{8}$");
 
+        /// <summary>
+        /// Processes a request to swap one o more faces on a given media
+        /// </summary>
+        /// <param name="type">Type of target media (video OR image)</param>
+        /// <param name="targetMedia">Target media (URL to get media OR FileName on the form files collection)</param>
+        /// <param name="sourceFaces">Comma separated list of source faces to apply (each one as a URL to get the image, FileName on the form files collection, OR the frame on the source media at the given time in format HH:MM:SS.FFFF)</param>
+        /// <param name="targetFaces">Comma separated list of source faces to apply (each one as a URL to get the image, FileName on the form files collection, OR the frame on the source media at the given time in format HH:MM:SS.FFFF)</param>
+        /// <param name="targetStartTime">Start time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes from the start of the target video</param>
+        /// <param name="targetEndTime">End time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes to the end of the target video</param>
+        /// <param name="superResolution">True to indicate the use of super resolution. Default is false.</param>
+        /// <returns></returns>
         [HttpPost("p/{type}")]
         [Produces("application/json")]
         [AuditApi(IncludeResponseBody = true)]
         public async Task<ActionResult<SwapFacesProcessResponse>> Process(
-            [FromRoute] string type, 
+            [FromRoute] MediaType type, 
             [FromForm(Name = "tm")] string targetMedia,
             [FromForm(Name = "sf")] string sourceFaces,
             [FromForm(Name = "tf")] string? targetFaces = null,
@@ -42,11 +51,7 @@ namespace SwapFaces.Controllers
             [FromForm(Name = "tet")] string? targetEndTime = null,
             [FromForm(Name = "sr")] bool superResolution = false)
         {
-            if (type == null || !ValidTypes.Contains(type))
-            {
-                return BadRequest("Invalid type");
-            }
-            bool isVideo = type.Equals("video", StringComparison.InvariantCultureIgnoreCase);
+            bool isVideo = type == MediaType.Video;
             if (targetMedia == null)
             {
                 return BadRequest("Missing target media");
@@ -127,6 +132,12 @@ namespace SwapFaces.Controllers
             });
         }
 
+        /// <summary>
+        /// Downloads an already processed media
+        /// </summary>
+        /// <param name="requestId">The original request ID</param>
+        /// <param name="fileName">The file name to download</param>
+        /// <param name="download">1 to indicate the file should be returned as an attachment</param>
         [HttpGet("d")]
         [AuditApi(IncludeResponseBody = false)]
         public ActionResult Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "f")] string fileName, [FromQuery(Name = "dl")] int download = 0)

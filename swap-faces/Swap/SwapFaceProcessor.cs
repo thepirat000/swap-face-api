@@ -74,7 +74,7 @@ namespace SwapFaces.Swap
             var result = await _shellHelper.ExecuteWithTimeout(
                 commands, 
                 Settings.AnacondaWorkingDirectory, 
-                15,
+                Settings.ProcessTimeoutMins,
                 e => 
                 { 
                     sbStdErr.AppendLine(e);

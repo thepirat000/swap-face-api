@@ -11,5 +11,6 @@
         public const string Youtube_Dl_Tool = "yt-dlp";
         public const int Youtube_MaxDuration = 360;  // in seconds
         public const string InferenceExtraArguments = "--ignore_audio True";
+        public const int ProcessTimeoutMins = 14;
     }
 }

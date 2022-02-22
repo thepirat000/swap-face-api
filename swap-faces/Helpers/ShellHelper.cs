@@ -124,13 +124,15 @@ namespace SwapFaces.Helpers
             return string.Concat(filename.Split(Path.GetInvalidFileNameChars()));
         }
 
-        private static async Task WaitOrKill(Process process, int timeoutMinutes)
+        private static async Task<bool> WaitOrKill(Process process, int timeoutMinutes)
         {
             var cts = new CancellationTokenSource();
             cts.CancelAfter(timeoutMinutes * 60 * 1000);
             await process.WaitForExitAsync(cts.Token);
+            bool cancelled = false;
             if (cts.IsCancellationRequested)
             {
+                cancelled = true;
                 LogHelper.EphemeralLog($"---------------> PROCESS EXITED AFTER TIMEOUT. Killing process.", true);
                 try
                 {
@@ -143,6 +145,7 @@ namespace SwapFaces.Helpers
             }
             process.CancelOutputRead();
             process.CancelErrorRead();
+            return cancelled; 
         }
     }
 }
