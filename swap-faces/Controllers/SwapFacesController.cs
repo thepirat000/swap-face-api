@@ -129,7 +129,7 @@ namespace swap_faces.Controllers
 
         [HttpGet("d")]
         [AuditApi(IncludeResponseBody = false)]
-        public async Task<ActionResult> Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "f")] string fileName)
+        public async Task<ActionResult> Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "f")] string fileName, [FromQuery(Name = "dl")] int download = 0)
         {
             if (!ValidateRequestId.IsMatch(requestId))
             {
@@ -145,9 +145,16 @@ namespace swap_faces.Controllers
             {
                 var ext = Path.GetExtension(filePath);
                 var contentType = ext.Equals(".mp4", StringComparison.InvariantCultureIgnoreCase) ? "video/mp4" : "image/jpeg";
-                return PhysicalFile(filePath, contentType, $"{requestId}_{fileName}");
+                if (download > 0)
+                {
+                    return PhysicalFile(filePath, contentType, $"{requestId}_{fileName}");
+                }
+                else
+                {
+                    return new FileStreamResult(new FileStream(filePath, FileMode.Open, FileAccess.Read), contentType);
+                }
             }
-
+        
             return Problem("File not found");
         }
 
