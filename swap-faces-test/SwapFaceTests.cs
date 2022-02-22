@@ -9,7 +9,7 @@ using System;
 using System.Text.Json;
 using System.Diagnostics;
 
-namespace swap_faces_test
+namespace SwapFacesTest
 {
     public class SwapFaceTests
     {

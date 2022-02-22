@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
-    <RootNamespace>swap_faces_test</RootNamespace>
+    <RootNamespace>SwapFacesTest</RootNamespace>
     <Nullable>enable</Nullable>
 
     <IsPackable>false</IsPackable>

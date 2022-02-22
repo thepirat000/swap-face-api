@@ -129,7 +129,7 @@ namespace SwapFaces.Controllers
 
         [HttpGet("d")]
         [AuditApi(IncludeResponseBody = false)]
-        public async Task<ActionResult> Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "f")] string fileName, [FromQuery(Name = "dl")] int download = 0)
+        public ActionResult Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "f")] string fileName, [FromQuery(Name = "dl")] int download = 0)
         {
             if (!ValidateRequestId.IsMatch(requestId))
             {
