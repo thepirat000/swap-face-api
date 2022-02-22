@@ -26,10 +26,20 @@ namespace swap_faces.Swap
             var originalTargetFilePath = inputFilePath;
             // Trim the video if needed
             inputFilePath = TrimTargetMedia(request.TargetMedia, inputFilePath);
-
+            // Validate file
             if (!File.Exists(inputFilePath))
             {
                 throw new Exception("Unknown error creating target media");
+            }
+            // Validate video duration
+            if (request.TargetMedia.MediaType == MediaType.Video && File.Exists(inputFilePath))
+            {
+                var duration = _ffMpegHelper.GetVideoDuration(inputFilePath);
+                if (duration > Settings.Youtube_MaxDuration)
+                {
+                    File.Delete(inputFilePath);
+                    throw new ArgumentException($"Video duration cannot be longer than {Settings.Youtube_MaxDuration}");
+                }
             }
 
             // Create the file(s) for the source face image(s)
@@ -154,17 +164,6 @@ namespace swap_faces.Swap
                 default:
                     throw new NotImplementedException();
             }
-            if (targetMedia.MediaType == MediaType.Video && File.Exists(filePath))
-            {
-                // Validate duration on file
-                var duration = _ffMpegHelper.GetVideoDuration(filePath);
-                if (duration > Settings.Youtube_MaxDuration)
-                {
-                    File.Delete(filePath);
-                    throw new ArgumentException($"Video duration cannot be longer than {Settings.Youtube_MaxDuration}");
-                }
-            }
-
             return filePath;
         }
 
