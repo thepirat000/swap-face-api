@@ -218,6 +218,7 @@ namespace swap_faces.Swap
                                 ext = ".jpg";
                             }
                             filePath = Path.Combine(folder, $"FS_{i:D2}{ext}");
+                            Directory.CreateDirectory(folder);
                             using (var output = File.Create(filePath))
                             {
                                 await file.CopyToAsync(output);
