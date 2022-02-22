@@ -45,17 +45,20 @@ namespace swap_faces.Helpers
                 info.Filename = _shellHelper.SanitizeFilename(info.Filename.Substring(0, info.Filename.LastIndexOf('.')));
             }
             var dur = info.Duration.Split(':');
-            if (dur.Length == 1)
+            if (dur.Length > 0 && dur.All(d => int.TryParse(d, out _)))
             {
-                info.DurationSeconds = int.Parse(dur[0]);
-            }
-            else if (dur.Length == 2)
-            {
-                info.DurationSeconds = int.Parse(dur[0]) * 60 + int.Parse(dur[1]);
-            }
-            else if (dur.Length == 3)
-            {
-                info.DurationSeconds = int.Parse(dur[0]) * 3600 + int.Parse(dur[1]) * 60 + int.Parse(dur[2]);
+                if (dur.Length == 1)
+                {
+                    info.DurationSeconds = int.Parse(dur[0]);
+                }
+                else if (dur.Length == 2)
+                {
+                    info.DurationSeconds = int.Parse(dur[0]) * 60 + int.Parse(dur[1]);
+                }
+                else if (dur.Length == 3)
+                {
+                    info.DurationSeconds = int.Parse(dur[0]) * 3600 + int.Parse(dur[1]) * 60 + int.Parse(dur[2]);
+                }
             }
             _videoInfoCache[url] = info;
             return info;
