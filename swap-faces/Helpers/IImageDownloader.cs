@@ -2,6 +2,6 @@
 {
     public interface IImageDownloader
     {
-        Task<string> DownloadImageAsync(Uri uri, string filePath);
+        Task<string> DownloadImage(Uri uri, string filePath);
     }
 }

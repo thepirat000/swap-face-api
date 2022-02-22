@@ -123,19 +123,29 @@ namespace swap_faces.Swap
             switch (targetMedia.SourceType)
             {
                 case TargetMediaSourceType.Url:
-                    // Download video from URL
-                    var videoUri = new Uri(targetMedia.Id);
-                    filePath = _youtubeHelper.GetVideoFilePath(videoUri);
-                    if (!File.Exists(filePath))
+                    var mediaUri = new Uri(targetMedia.Id);
+                    if (targetMedia.MediaType == MediaType.Video)
                     {
-                        // Duration validation on URL
-                        var info = _youtubeHelper.GetVideoInfo(videoUri);
-                        if (info.DurationSeconds > Settings.Youtube_MaxDuration)
+                        // Download video from URL
+                        
+                        filePath = _youtubeHelper.GetVideoFilePath(mediaUri);
+                        if (!File.Exists(filePath))
                         {
-                            File.Delete(filePath);
-                            throw new ArgumentException($"Video duration cannot be longer than {Settings.Youtube_MaxDuration}");
+                            // Duration validation on URL
+                            var info = _youtubeHelper.GetVideoInfo(mediaUri);
+                            if (info.DurationSeconds > Settings.Youtube_MaxDuration)
+                            {
+                                File.Delete(filePath);
+                                throw new ArgumentException($"Video duration cannot be longer than {Settings.Youtube_MaxDuration}");
+                            }
+                            filePath = _youtubeHelper.DownloadVideoAndAudio(mediaUri).VideoFileFullPath;
                         }
-                        filePath = _youtubeHelper.DownloadVideoAndAudio(videoUri).VideoFileFullPath;
+                    }
+                    else
+                    {
+                        // Download image from URL
+                        var targetfilePathWithoutExtension = Path.Combine(Settings.RequestRootPath, request.RequestId, "target");
+                        filePath = await _imageDownloader.DownloadImage(mediaUri, targetfilePathWithoutExtension);
                     }
                     break;
                 case TargetMediaSourceType.FileName:
@@ -197,7 +207,7 @@ namespace swap_faces.Swap
                         }
                         break;
                     case FaceFromType.ImageUrl:
-                        filePath = await _imageDownloader.DownloadImageAsync(new Uri(swapFace.SourceId), Path.Combine(folder, $"FS_{i:D2}"));
+                        filePath = await _imageDownloader.DownloadImage(new Uri(swapFace.SourceId), Path.Combine(folder, $"FS_{i:D2}"));
                         break;
                     case FaceFromType.FileName:
                         var file = formFiles[swapFace.SourceId];
@@ -229,63 +239,65 @@ namespace swap_faces.Swap
         private async Task<string[]> CreateTargetImages(SwapFacesRequest request, IFormFileCollection formFiles, string inputFilePath)
         {
             var folder = Path.Combine(Settings.RequestRootPath, request.RequestId);
-            var paths = new string[request.SwapFaces.Count];
+            var paths = new List<string>();
             for (int i = 0; i < request.SwapFaces.Count; i++)
             {
-                string filePath = null;
                 SwapFace swapFace = request.SwapFaces[i];
-                switch (swapFace.TargetType)
+                if (swapFace.TargetType != null)
                 {
-                    case FaceFromType.FrameAtTarget:
-                        // Capture frame at TargetId duration on inputVideoFilePath using ffmpeg
-                        filePath = Path.Combine(folder, $"FT_{i:D2}.jpg");
-                        _ffMpegHelper.CreateImageForFrame(inputFilePath, swapFace.TargetId, filePath);
-                        if (!File.Exists(filePath))
-                        {
-                            throw new Exception($"Unknown error extracting frame");
-                        }
-                        break;
-                    case FaceFromType.ImageUrl:
-                        filePath = await _imageDownloader.DownloadImageAsync(new Uri(swapFace.TargetId), Path.Combine(folder, $"FT_{i:D2}"));
-                        break;
-                    case FaceFromType.FileName:
-                        var file = formFiles[swapFace.TargetId];
-                        var ext = Path.GetExtension(file.FileName);
-                        if (string.IsNullOrEmpty(ext))
-                        {
-                            ext = ".jpg";
-                        }
-                        filePath = Path.Combine(folder, $"FT_{i:D2}{ext}");
-                        using (var output = File.Create(filePath))
-                        {
-                            await file.CopyToAsync(output);
-                        }
-                        break;
-                    default:
-                        throw new NotImplementedException();
+                    string filePath = null;
+                    switch (swapFace.TargetType)
+                    {
+                        case FaceFromType.FrameAtTarget:
+                            // Capture frame at TargetId duration on inputVideoFilePath using ffmpeg
+                            filePath = Path.Combine(folder, $"FT_{i:D2}.jpg");
+                            _ffMpegHelper.CreateImageForFrame(inputFilePath, swapFace.TargetId, filePath);
+                            if (!File.Exists(filePath))
+                            {
+                                throw new Exception($"Unknown error extracting frame");
+                            }
+                            break;
+                        case FaceFromType.ImageUrl:
+                            filePath = await _imageDownloader.DownloadImage(new Uri(swapFace.TargetId), Path.Combine(folder, $"FT_{i:D2}"));
+                            break;
+                        case FaceFromType.FileName:
+                            var file = formFiles[swapFace.TargetId];
+                            var ext = Path.GetExtension(file.FileName);
+                            if (string.IsNullOrEmpty(ext))
+                            {
+                                ext = ".jpg";
+                            }
+                            filePath = Path.Combine(folder, $"FT_{i:D2}{ext}");
+                            using (var output = File.Create(filePath))
+                            {
+                                await file.CopyToAsync(output);
+                            }
+                            break;
+                        default:
+                            throw new NotImplementedException();
+                    }
+                    paths.Add(filePath);
                 }
-                paths[i] = filePath;
             }
-            return paths;
+            return paths.ToArray();
         }
 
         private string GetInferenceCommand(SwapFacesRequest request, string inputFilePath, string[] sourceImageFilePaths, string[] targetImageFilePaths, string outputFilePath)
         {
+            var superResolutionArg = request.SuperResolution ? "--use_sr True" : "";
+            var targetFacesPathArg = targetImageFilePaths?.Length > 0 ? "--target_faces_paths " + string.Join(" ", targetImageFilePaths.Select(s => @"""" + s + @"""")) : "";
+            var sourcePaths = string.Join(" ", sourceImageFilePaths.Select(s => @"""" + s + @""""));
+
             if (request.TargetMedia.MediaType == MediaType.Image)
             {
                 // Image target
                 // python inference.py --source_paths "a.jpg" --target_image {PATH_TO_IMAGE} --target_faces_paths "b.jpg" --image_to_image True 
-                var sourcePaths = string.Join(" ", sourceImageFilePaths.Select(s => @"""" + s + @""""));
-                var targetFacesPath = targetImageFilePaths == null ? "" : "--target_faces_paths " + string.Join(" ", targetImageFilePaths.Select(s => @"""" + s + @""""));
-                return @$"python inference.py --source_paths {sourcePaths} --target_image ""{outputFilePath}"" --image_to_image True --out_image_name ""{outputFilePath}""";
+                return @$"python inference.py --source_paths {sourcePaths} {targetFacesPathArg} --target_image ""{inputFilePath}"" {superResolutionArg} {Settings.InferenceExtraArguments} --image_to_image True --out_image_name ""{outputFilePath}""";
             }
             else
             {
                 // Video target
                 // python inference.py --source_paths "/temp/lupi2.jpg" "/temp/fede1.jpg" --target_faces_paths /temp/guerita.JPG /temp/guerito.JPG --target_video /temp/stefan.mp4
-                var sourcePaths = string.Join(" ", sourceImageFilePaths.Select(s => @"""" + s + @""""));
-                var targetFacesPathArg = targetImageFilePaths == null ? "" : "--target_faces_paths " + string.Join(" ", targetImageFilePaths.Select(s => @"""" + s + @""""));
-                var superResolutionArg = request.SuperResolution ? "--use_sr True" : "";
                 return @$"python inference.py --source_paths {sourcePaths} {targetFacesPathArg} --target_video ""{inputFilePath}"" {superResolutionArg} {Settings.InferenceExtraArguments} --out_video_name ""{outputFilePath}""";
             }
 

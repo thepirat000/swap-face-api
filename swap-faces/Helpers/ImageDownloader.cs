@@ -11,9 +11,9 @@
         }
 
         /// <summary>
-        /// Downloads an image asynchronously from the <paramref name="uri"/> and places it in the specified <paramref name="filePath"/>.
+        /// Downloads an image asynchronously from the <paramref name="uri"/> and places it in the specified <paramref name="filePathWithoutExtension" adding the corresponding extension/>.
         /// </summary>
-        public async Task<string> DownloadImageAsync(Uri uri, string filePathWithoutExtension)
+        public async Task<string> DownloadImage(Uri uri, string filePathWithoutExtension)
         {
             if (_disposed) { throw new ObjectDisposedException(GetType().FullName); }
 
