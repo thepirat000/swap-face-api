@@ -1,4 +1,6 @@
-﻿namespace SwapFaces.Helpers
+﻿using SwapFaces.Dto;
+
+namespace SwapFaces.Helpers
 {
     public class FfMpegHelper : IFfMpegHelper
     {
@@ -56,6 +58,27 @@
                 return duration;
             }
             return 0d;
+        }
+        
+        public MediaType? GetMediaType(string inputFilePath)
+        {
+            // ffprobe -v error -show_entries format=format_name -of default=nokey=1:noprint_wrappers=1 "c:\x\y.mp4"
+            var ffmpegCmd = @$"ffprobe -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 ""{inputFilePath}""";
+            var shellResult = _shellHelper.Execute(ffmpegCmd);
+            if (shellResult.ExitCode != 0)
+            {
+                throw new Exception(shellResult.Output);
+            }
+            if (shellResult.Output.Contains("image", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return MediaType.Image;
+            }
+            if (shellResult.Output.Contains("mp4", StringComparison.InvariantCultureIgnoreCase) || shellResult.Output.Contains("gif", StringComparison.InvariantCultureIgnoreCase))
+            {
+                return MediaType.Video;
+            }
+            return null;
+
         }
     }
 }

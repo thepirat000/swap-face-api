@@ -1,4 +1,7 @@
-﻿namespace SwapFaces.Helpers
+﻿
+using SwapFaces.Dto;
+
+namespace SwapFaces.Helpers
 {
     public interface IFfMpegHelper
     {
@@ -18,5 +21,11 @@
         /// Returns the video duration in seconds for the given video file
         /// </summary>
         double GetVideoDuration(string inputVideoFilePath);
+        /// <summary>
+        /// Returns the media type for a file (image, video or NULL for unknown)
+        /// </summary>
+        /// <param name="inputFilePath"></param>
+        /// <returns></returns>
+        MediaType? GetMediaType(string inputFilePath);
     }
 }
