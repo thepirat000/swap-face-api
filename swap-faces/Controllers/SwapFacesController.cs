@@ -27,7 +27,7 @@ namespace swap_faces.Controllers
         private static readonly HashSet<string> ValidTypes = new HashSet<string>(new string[] { "video", "image" }, StringComparer.InvariantCultureIgnoreCase);
         
         private static readonly Regex ValidateUrl = new Regex(@"^http(s)?:\/\/", RegexOptions.IgnoreCase);
-        private static readonly Regex ValidateTime = new Regex(@"^(\d{1,2}:)?\d{2}:\d{2}(\.\d*)?$");
+        private static readonly Regex ValidateTime = new Regex(@"^(\d{1,2}:)?(\d{1,2}:)?\d{2}(\.\d*)?$");
         private static readonly Regex ValidateRequestId = new Regex(@"^[0-9a-f]{8}$");
 
         [HttpPost("p/{type}")]
