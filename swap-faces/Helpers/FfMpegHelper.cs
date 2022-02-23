@@ -44,11 +44,43 @@ namespace SwapFaces.Helpers
             }
         }
 
+        public string GetVideoCodec(string inputVideoFilePath)
+        {
+            var ffProbeCmd = @$"ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 ""{inputVideoFilePath}""";
+            var shellResult = _shellHelper.Execute(ffProbeCmd);
+            if (shellResult.ExitCode != 0)
+            {
+                throw new Exception(shellResult.Output);
+            }
+            return shellResult.Output.Split(Environment.NewLine)[0].Trim();
+        }
+
+        public void ChangeVideoCodec(string inputVideoFilePath, string videoCodec, string outputFilePath)
+        {
+            // ffmpeg -i input.flv -vcodec libx264 -acodec aac output.mp4
+            var ffmpegCmd = @$"ffmpeg -i ""{inputVideoFilePath}"" -vcodec libx264 -y ""{outputFilePath}""";
+            var shellResult = _shellHelper.Execute(ffmpegCmd);
+            if (shellResult.ExitCode != 0)
+            {
+                throw new Exception(shellResult.Output);
+            }
+        }
+
+        public bool TryChangeVideoCodec(string inputVideoFilePath, string videoCodec, string outputFilePath)
+        {
+            if (!GetVideoCodec(inputVideoFilePath).Equals(videoCodec, StringComparison.InvariantCultureIgnoreCase))
+            {
+                ChangeVideoCodec(inputVideoFilePath, videoCodec, outputFilePath);
+                return true;
+            }
+            return false;
+        }
+
         public double GetVideoDuration(string inputVideoFilePath)
         {
             // ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "c:\x\y.mp4"
-            var ffmpegCmd = @$"ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ""{inputVideoFilePath}""";
-            var shellResult = _shellHelper.Execute(ffmpegCmd);
+            var ffProbeCmd = @$"ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 ""{inputVideoFilePath}""";
+            var shellResult = _shellHelper.Execute(ffProbeCmd);
             if (shellResult.ExitCode != 0)
             {
                 throw new Exception(shellResult.Output);
@@ -63,8 +95,8 @@ namespace SwapFaces.Helpers
         public MediaType? GetMediaType(string inputFilePath)
         {
             // ffprobe -v error -show_entries format=format_name -of default=nokey=1:noprint_wrappers=1 "c:\x\y.mp4"
-            var ffmpegCmd = @$"ffprobe -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 ""{inputFilePath}""";
-            var shellResult = _shellHelper.Execute(ffmpegCmd);
+            var ffProbeCmd = @$"ffprobe -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 ""{inputFilePath}""";
+            var shellResult = _shellHelper.Execute(ffProbeCmd);
             if (shellResult.ExitCode != 0)
             {
                 throw new Exception(shellResult.Output);
@@ -78,7 +110,6 @@ namespace SwapFaces.Helpers
                 return MediaType.Video;
             }
             return null;
-
         }
     }
 }

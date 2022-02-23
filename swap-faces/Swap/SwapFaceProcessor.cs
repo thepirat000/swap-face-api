@@ -69,57 +69,41 @@ namespace SwapFaces.Swap
                 throw new Exception("Unknown error creating target images");
             }
 
-            // Generate the output video or image
+            // Execute the inference command
             var outputFilePath = GetOutputFilePath(request);
-            var inferenceCommand = GetInferenceCommand(request, inputFilePath, sourceImageFilePaths, targetImageFilePaths, outputFilePath);
-            LogHelper.EphemeralLog($"Inference Command: {inferenceCommand}");
+            var inference = await ExecuteInferenceCommand(request, inputFilePath, sourceImageFilePaths, targetImageFilePaths, outputFilePath);
 
-            // Execure Conda code
-            var commands = new string[]
+            // outputFilePath var MUST have the final filename to return
+            if (File.Exists(outputFilePath) && request.TargetMedia.MediaType == MediaType.Video)
             {
-                Settings.AnacondaActivateScript,
-                @$"cd ""{Settings.AnacondaWorkingDirectory}""",
-                inferenceCommand,
-                Settings.AnacondaDeactivateScript
-            };
-            var sbStdErr = new StringBuilder();
-            var sbStdOut = new StringBuilder();
-            var result = await _shellHelper.ExecuteWithTimeout(
-                commands, 
-                Settings.AnacondaWorkingDirectory, 
-                Settings.ProcessTimeoutMins,
-                e => 
-                { 
-                    sbStdErr.AppendLine(e);
-                    LogHelper.EphemeralLog("STDERR: " + e);
-                },
-                o => 
-                { 
-                    sbStdOut.AppendLine(o);
-                    LogHelper.EphemeralLog("STDOUT: " + o);
-                });
-
-            // Re-add audio from original
-            string finalOutputFilePath = outputFilePath;
-            if (File.Exists(finalOutputFilePath))
-            {
-                finalOutputFilePath = Path.Combine(Path.GetDirectoryName(outputFilePath), Path.GetFileNameWithoutExtension(outputFilePath) + "_final" + Path.GetExtension(outputFilePath));
-                _ffMpegHelper.MergeAudio(outputFilePath, inputFilePath, finalOutputFilePath);
+                // Re-add audio from original
+                string tempFilePath = Path.Combine(Path.GetDirectoryName(outputFilePath), Path.GetFileNameWithoutExtension(outputFilePath) + "_audio" + Path.GetExtension(outputFilePath));
+                _ffMpegHelper.MergeAudio(outputFilePath, inputFilePath, tempFilePath);
                 // Remove temp video file
                 File.Delete(outputFilePath);
+                // Set the final path
+                outputFilePath = tempFilePath;
+
+                // Encode to h264 if needed 
+                tempFilePath = Path.Combine(Path.GetDirectoryName(outputFilePath), Path.GetFileNameWithoutExtension(outputFilePath) + "_h264" + Path.GetExtension(outputFilePath));
+                if (_ffMpegHelper.TryChangeVideoCodec(outputFilePath, "h264", tempFilePath))
+                {
+                    // Set the final path
+                    outputFilePath = tempFilePath;
+                }
             }
   
-            var fileInfo = new FileInfo(finalOutputFilePath);
+            var fileInfo = new FileInfo(outputFilePath);
             if (fileInfo.Exists)
             {
                 // Write the processed filename on the .id file
-                await File.WriteAllTextAsync(Path.Combine(Settings.RequestRootPath, request.RequestId, ".id"), Path.GetFileName(finalOutputFilePath));
+                await File.WriteAllTextAsync(Path.Combine(Settings.RequestRootPath, request.RequestId, ".id"), Path.GetFileName(outputFilePath));
             }
             return new ProcessResult()
             {
-                OutputFileName = fileInfo.Exists ? finalOutputFilePath : null,
-                StdError = sbStdErr.ToString(),
-                StdOutput = sbStdOut.ToString(),
+                OutputFileName = fileInfo.Exists ? outputFilePath : null,
+                StdError = inference.StdError.ToString(),
+                StdOutput = inference.StdOutput.ToString(),
                 Success = fileInfo.Exists && fileInfo.Length > 0
             };
         }
@@ -327,7 +311,44 @@ namespace SwapFaces.Swap
                 // python inference.py --source_paths "/temp/lupi2.jpg" "/temp/fede1.jpg" --target_faces_paths /temp/guerita.JPG /temp/guerito.JPG --target_video /temp/stefan.mp4
                 return @$"python inference.py --source_paths {sourcePaths} {targetFacesPathArg} --target_video ""{inputFilePath}"" {superResolutionArg} {Settings.InferenceExtraArguments} --out_video_name ""{outputFilePath}""";
             }
+        }
+        public class ExecuteInferenceResult
+        {
+            public ExecuteResult CommandResult { get; set; }
+        }
+        private async Task<ExecuteResult> ExecuteInferenceCommand(SwapFacesRequest request, string inputFilePath, 
+            string[] sourceImageFilePaths, string[] targetImageFilePaths,
+            string outputFilePath)
+        {
+            // Generate the output video or image
+            var inferenceCommand = GetInferenceCommand(request, inputFilePath, sourceImageFilePaths, targetImageFilePaths, outputFilePath);
+            LogHelper.EphemeralLog($"Inference Command: {inferenceCommand}");
 
+            // Execute Conda code
+            var commands = new string[]
+            {
+                Settings.AnacondaActivateScript,
+                @$"cd ""{Settings.AnacondaWorkingDirectory}""",
+                inferenceCommand,
+                Settings.AnacondaDeactivateScript
+            };
+            var sbStdErr = new StringBuilder();
+            var sbStdOut = new StringBuilder();
+            var result = await _shellHelper.ExecuteWithTimeout(
+                commands,
+                Settings.AnacondaWorkingDirectory,
+                Settings.ProcessTimeoutMins,
+                e =>
+                {
+                    sbStdErr.AppendLine(e);
+                    LogHelper.EphemeralLog("STDERR: " + e);
+                },
+                o =>
+                {
+                    sbStdOut.AppendLine(o);
+                    LogHelper.EphemeralLog("STDOUT: " + o);
+                });
+            return result;
         }
 
         private string GetOutputFilePath(SwapFacesRequest request)

@@ -7,11 +7,13 @@ namespace SwapFaces.Helpers
 {
     public class ShellHelper : IShellHelper
     {
-        public async Task<ExecuteResult> ExecuteWithTimeout(string[] commands, string? workingDirectory = null, int timeoutMinutes = 15, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
+        public async Task<ExecuteResult> ExecuteWithTimeout(string[] commands, string? workingDirectory = null, int timeoutMinutes = 15, 
+            Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
         {
             LogHelper.EphemeralLog("Will execute commands: " + string.Join(Environment.NewLine, commands));
-            var output = new StringBuilder();
-            var status = new ExecuteResult();
+            var stdOutputBuilder = new StringBuilder();
+            var stdErrorBuilder = new StringBuilder();
+
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -31,6 +33,7 @@ namespace SwapFaces.Helpers
                 if (!string.IsNullOrEmpty(e.Data))
                 {
                     stdErrDataReceivedCallback?.Invoke(e.Data);
+                    stdErrorBuilder.AppendLine(e.Data);
                 }
             });
             process.OutputDataReceived += new DataReceivedEventHandler(delegate (object sender, DataReceivedEventArgs e)
@@ -38,6 +41,7 @@ namespace SwapFaces.Helpers
                 if (!string.IsNullOrEmpty(e.Data))
                 {
                     stdOutDataReceivedCallback?.Invoke(e.Data);
+                    stdOutputBuilder.AppendLine(e.Data);
                 }
             });
             process.Start();
@@ -57,8 +61,12 @@ namespace SwapFaces.Helpers
 
             await WaitOrKill(process, timeoutMinutes);
 
-            status.ExitCode = process.ExitCode;
-            return status;
+            return new ExecuteResult()
+            {
+                ExitCode = process.ExitCode,
+                StdError = stdErrorBuilder.ToString(),
+                StdOutput = stdOutputBuilder.ToString()
+            };
         }
 
         public ExecuteResult Execute(string cmd, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
@@ -66,7 +74,8 @@ namespace SwapFaces.Helpers
             LogHelper.EphemeralLog("Will execute: " + cmd);
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
             var escapedArgs = isWindows ? cmd : cmd.Replace("\"", "\\\"");
-            var outputBuilder = new StringBuilder();
+            var stdOutputBuilder = new StringBuilder();
+            var stdErrorBuilder = new StringBuilder();
 
             var process = new Process()
             {
@@ -88,7 +97,7 @@ namespace SwapFaces.Helpers
                     if (!string.IsNullOrWhiteSpace(e.Data))
                     {
                         stdErrDataReceivedCallback?.Invoke(e.Data);
-                        outputBuilder.AppendLine(e.Data);
+                        stdErrorBuilder.AppendLine(e.Data);
                     }
                 }
             );
@@ -99,7 +108,7 @@ namespace SwapFaces.Helpers
                     if (!string.IsNullOrWhiteSpace(e.Data))
                     {
                         stdOutDataReceivedCallback?.Invoke(e.Data);
-                        outputBuilder.AppendLine(e.Data);
+                        stdOutputBuilder.AppendLine(e.Data);
                     }
                 }
             );
@@ -107,6 +116,7 @@ namespace SwapFaces.Helpers
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+            // TOOD: FDCG: Async !
             process.WaitForExit();
             process.CancelOutputRead();
             process.CancelErrorRead();
@@ -114,7 +124,8 @@ namespace SwapFaces.Helpers
             return new ExecuteResult()
             {
                 ExitCode = process.ExitCode,
-                Output = outputBuilder.ToString()
+                StdError = stdErrorBuilder.ToString(),
+                StdOutput = stdOutputBuilder.ToString()
             };
         }
 

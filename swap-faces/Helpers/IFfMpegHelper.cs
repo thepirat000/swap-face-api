@@ -27,5 +27,19 @@ namespace SwapFaces.Helpers
         /// <param name="inputFilePath"></param>
         /// <returns></returns>
         MediaType? GetMediaType(string inputFilePath);
+        /// <summary>
+        /// Returns the video codec name for a given video file
+        /// </summary>
+        /// <param name="inputVideoFilePath"></param>
+        /// <returns></returns>
+        string GetVideoCodec(string inputVideoFilePath);
+        /// <summary>
+        /// Changes the video codec of a given video file
+        /// </summary>
+        void ChangeVideoCodec(string inputVideoFilePath, string videoCodec, string outputFilePath);
+        /// <summary>
+        /// Tries to change the video codec of a given video file, returns true if the codec was changed and the output file was created
+        /// </summary>
+        bool TryChangeVideoCodec(string inputVideoFilePath, string videoCodec, string outputFilePath);
     }
 }
