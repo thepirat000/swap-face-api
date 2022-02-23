@@ -5,11 +5,60 @@ using Microsoft.AspNetCore.StaticFiles;
 using SwapFaces.Dto;
 using SwapFaces.Helpers;
 using SwapFaces.Swap;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace SwapFaces.Controllers
 {
+    public class ProcessForm
+    {
+        public enum DownloadType
+        {
+            /// <summary>
+            /// Do not download the file, return the URL to download the file
+            /// </summary>
+            None = 0,
+            /// <summary>
+            /// Returns the file as a stream to be played
+            /// </summary>
+            Stream = 1,
+            /// <summary>
+            /// Returns the file as an attached file to be downloaded
+            /// </summary>
+            Attachment = 2
+        }
+
+        /// <summary>
+        /// Target media (URL to get media OR FileName on the form files collection)
+        /// </summary>
+        [Required] public string TargetMedia { get; set; }
+        /// <summary>
+        /// Comma separated list of source faces to apply (each one as a URL to get the image, FileName on the form files collection, OR the frame on the source media at the given time in format HH:MM:SS.FFFF)
+        /// </summary>
+        [Required] public string SourceFaces { get; set; }
+        /// <summary>
+        /// Comma separated list of source faces to apply (each one as a URL to get the image, FileName on the form files collection, OR the frame on the source media at the given time in format HH:MM:SS.FFFF)
+        /// </summary>
+        public string? TargetFaces { get; set; }
+        /// <summary>
+        /// Start time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes from the start of the target video
+        /// </summary>
+        public string? TargetStartTime { get; set; }
+        /// <summary>
+        /// End time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes to the end of the target video
+        /// </summary>
+        public string? TargetEndTime { get; set; }
+        /// <summary>
+        /// True to indicate the use of super resolution. Default is false
+        /// </summary>
+        public bool SuperResolution { get; set; }
+        /// <summary>
+        /// Download type
+        /// </summary>
+        public DownloadType Download { get; set; }
+    }
+
     [Route("swap")]
     [EnableCors]
     public class SwapFacesController : Controller
@@ -27,6 +76,18 @@ namespace SwapFaces.Controllers
         private static readonly Regex ValidateUrl = new Regex(@"^http(s)?:\/\/", RegexOptions.IgnoreCase);
         private static readonly Regex ValidateTime = new Regex(@"^(\d{1,2}:)?(\d{1,2}:)?\d{1,2}(\.\d*)?$");
         private static readonly Regex ValidateRequestId = new Regex(@"^[0-9a-f]{8}$");
+
+        [HttpPost("p2/{type}")]
+        [Produces("application/json")]
+        [AuditApi(IncludeResponseBody = true)]
+        public async Task<ActionResult<SwapFacesProcessResponse>> Process_V2(
+            [FromRoute] MediaType type, 
+            [FromForm] ProcessForm form)
+        {
+            return await Process(type, form.TargetMedia, form.SourceFaces, form.TargetFaces,
+                form.TargetStartTime, form.TargetEndTime, form.SuperResolution,
+                form.Download == ProcessForm.DownloadType.None ? null : form.Download == ProcessForm.DownloadType.Stream ? 0 : 1);
+        }
 
         /// <summary>
         /// Processes a request to swap one o more faces on a given media
