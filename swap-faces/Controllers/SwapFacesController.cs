@@ -170,7 +170,7 @@ namespace SwapFaces.Controllers
                     contentType = Path.GetExtension(filePath).Equals(".mp4", StringComparison.InvariantCultureIgnoreCase) ? "video/mp4" : "image/jpeg";
                 }
                 HttpContext.Response.Headers.Add("x-download-url", Url.ActionLink("Download", null, new { r = requestId, f = fileName, dl = download }));
-                if (download == DownloadType.Stream)
+                if (download == DownloadType.Attachment)
                 {
                     var physicalFile = PhysicalFile(filePath, contentType, $"{requestId}_{fileName}");
                     physicalFile.EnableRangeProcessing = true;
