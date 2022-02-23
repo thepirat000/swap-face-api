@@ -170,11 +170,15 @@ namespace SwapFaces.Controllers
                 HttpContext.Response.Headers.Add("x-download-url", Url.ActionLink("Download", null, new { r = requestId, f = fileName, dl = download }));
                 if (download > 0)
                 {
-                    return PhysicalFile(filePath, contentType, $"{requestId}_{fileName}");
+                    var physicalFile = PhysicalFile(filePath, contentType, $"{requestId}_{fileName}");
+                    physicalFile.EnableRangeProcessing = true;
+                    return physicalFile;
                 }
                 else
                 {
-                    return new FileStreamResult(new FileStream(filePath, FileMode.Open, FileAccess.Read), contentType);
+                    var streamResult = new FileStreamResult(new FileStream(filePath, FileMode.Open, FileAccess.Read), contentType);
+                    streamResult.EnableRangeProcessing = true;
+                    return streamResult;
                 }
             }
         
