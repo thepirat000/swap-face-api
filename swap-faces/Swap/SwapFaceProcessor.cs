@@ -110,7 +110,11 @@ namespace SwapFaces.Swap
             }
   
             var fileInfo = new FileInfo(finalOutputFilePath);
-
+            if (fileInfo.Exists)
+            {
+                // Write the processed filename on the .id file
+                await File.WriteAllTextAsync(Path.Combine(Settings.RequestRootPath, request.RequestId, ".id"), Path.GetFileName(finalOutputFilePath));
+            }
             return new ProcessResult()
             {
                 OutputFileName = fileInfo.Exists ? finalOutputFilePath : null,
@@ -332,14 +336,16 @@ namespace SwapFaces.Swap
                 "processed" + (request.SuperResolution ? "_sr" : "") + (request.TargetMedia.MediaType == MediaType.Video ? ".mp4" : ".jpg")) ;
         }
 
-        public string? GetFilePathForDownload(string requestId, string fileName)
+        public string? GetFilePathForDownload(string requestId)
         {
-            if (fileName != _shellHelper.SanitizeFilename(fileName))
+            var idFile = Path.Combine(Settings.RequestRootPath, requestId, ".id");
+            if (File.Exists(idFile))
             {
-                throw new Exception("Invalid file name, f*ck off");
+                var fileName = File.ReadAllText(idFile);
+                var filePath = Path.Combine(Settings.RequestRootPath, requestId, fileName);
+                return File.Exists(filePath) ? filePath : null;
             }
-            var filePath = Path.Combine(Settings.RequestRootPath, requestId, fileName);
-            return File.Exists(filePath) ? filePath : null;
+            return null;
         }
     }
 }

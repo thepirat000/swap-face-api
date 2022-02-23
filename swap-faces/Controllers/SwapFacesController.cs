@@ -123,10 +123,10 @@ namespace SwapFaces.Controllers
             var fileName = result.Success == true ? Path.GetFileName(result.OutputFileName) : null;
             var urlDownload = fileName == null ? null : Url.ActionLink("Download", null, new { r = request.RequestId, f = fileName });
 
-            if (downloadType != DownloadType.None && fileName != null)
+            if (result.Success && downloadType != DownloadType.None)
             {
                 // Direct download requested
-                return Download(request.RequestId, fileName, downloadType);
+                return Download(request.RequestId, downloadType);
             }
 
             return Ok(new SwapFacesProcessResponse()
@@ -144,35 +144,30 @@ namespace SwapFaces.Controllers
         /// Downloads an already processed media
         /// </summary>
         /// <param name="requestId">The original request ID</param>
-        /// <param name="fileName">The file name to download</param>
         /// <param name="download">1 to indicate the file should be returned as an attachment</param>
         [HttpGet("d")]
         [AuditApi(IncludeResponseBody = false)]
-        public ActionResult Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "f")] string fileName, [FromQuery(Name = "dl")] DownloadType download = DownloadType.None)
+        public ActionResult Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "dl")] DownloadType download = DownloadType.None)
         {
             if (!ValidateRequestId.IsMatch(requestId))
             {
                 return BadRequest("Invalid request ID");
             }
-            if (string.IsNullOrEmpty(fileName))
-            {
-                return BadRequest("Must provide a file name");
-            }
             if (download == DownloadType.None)
             {
                 download = DownloadType.Stream;
             }
-            var filePath = _swapFaceProcessor.GetFilePathForDownload(requestId, fileName);
+            var filePath = _swapFaceProcessor.GetFilePathForDownload(requestId);
             if (filePath != null)
             {
                 if (!new FileExtensionContentTypeProvider().TryGetContentType(filePath, out string? contentType))
                 {
                     contentType = Path.GetExtension(filePath).Equals(".mp4", StringComparison.InvariantCultureIgnoreCase) ? "video/mp4" : "image/jpeg";
                 }
-                HttpContext.Response.Headers.Add("x-download-url", Url.ActionLink("Download", null, new { r = requestId, f = fileName, dl = download }));
+                HttpContext.Response.Headers.Add("x-download-url", Url.ActionLink("Download", null, new { r = requestId, dl = download }));
                 if (download == DownloadType.Attachment)
                 {
-                    var physicalFile = PhysicalFile(filePath, contentType, $"{requestId}_{fileName}");
+                    var physicalFile = PhysicalFile(filePath, contentType, $"{requestId}");
                     physicalFile.EnableRangeProcessing = true;
                     return physicalFile;
                 }
