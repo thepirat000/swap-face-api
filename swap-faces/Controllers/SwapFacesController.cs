@@ -5,60 +5,11 @@ using Microsoft.AspNetCore.StaticFiles;
 using SwapFaces.Dto;
 using SwapFaces.Helpers;
 using SwapFaces.Swap;
-using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace SwapFaces.Controllers
 {
-    public class ProcessForm
-    {
-        public enum DownloadType
-        {
-            /// <summary>
-            /// Do not download the file, return the URL to download the file
-            /// </summary>
-            None = 0,
-            /// <summary>
-            /// Returns the file as a stream to be played
-            /// </summary>
-            Stream = 1,
-            /// <summary>
-            /// Returns the file as an attached file to be downloaded
-            /// </summary>
-            Attachment = 2
-        }
-
-        /// <summary>
-        /// Target media (URL to get media OR FileName on the form files collection)
-        /// </summary>
-        [Required] public string TargetMedia { get; set; }
-        /// <summary>
-        /// Comma separated list of source faces to apply (each one as a URL to get the image, FileName on the form files collection, OR the frame on the source media at the given time in format HH:MM:SS.FFFF)
-        /// </summary>
-        [Required] public string SourceFaces { get; set; }
-        /// <summary>
-        /// Comma separated list of source faces to apply (each one as a URL to get the image, FileName on the form files collection, OR the frame on the source media at the given time in format HH:MM:SS.FFFF)
-        /// </summary>
-        public string? TargetFaces { get; set; }
-        /// <summary>
-        /// Start time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes from the start of the target video
-        /// </summary>
-        public string? TargetStartTime { get; set; }
-        /// <summary>
-        /// End time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes to the end of the target video
-        /// </summary>
-        public string? TargetEndTime { get; set; }
-        /// <summary>
-        /// True to indicate the use of super resolution. Default is false
-        /// </summary>
-        public bool SuperResolution { get; set; }
-        /// <summary>
-        /// Download type
-        /// </summary>
-        public DownloadType Download { get; set; }
-    }
-
     [Route("swap")]
     [EnableCors]
     public class SwapFacesController : Controller
@@ -77,44 +28,29 @@ namespace SwapFaces.Controllers
         private static readonly Regex ValidateTime = new Regex(@"^(\d{1,2}:)?(\d{1,2}:)?\d{1,2}(\.\d*)?$");
         private static readonly Regex ValidateRequestId = new Regex(@"^[0-9a-f]{8}$");
 
-        [HttpPost("p2/{type}")]
-        [Produces("application/json")]
-        [AuditApi(IncludeResponseBody = true)]
-        public async Task<ActionResult<SwapFacesProcessResponse>> Process_V2(
-            [FromRoute] MediaType type, 
-            [FromForm] ProcessForm form)
-        {
-            return await Process(type, form.TargetMedia, form.SourceFaces, form.TargetFaces,
-                form.TargetStartTime, form.TargetEndTime, form.SuperResolution,
-                form.Download == ProcessForm.DownloadType.None ? null : form.Download == ProcessForm.DownloadType.Stream ? 0 : 1);
-        }
-
         /// <summary>
         /// Processes a request to swap one o more faces on a given media
         /// </summary>
         /// <param name="type">Type of target media (video OR image)</param>
-        /// <param name="targetMedia">Target media (URL to get media OR FileName on the form files collection)</param>
-        /// <param name="sourceFaces">Comma separated list of source faces to apply (each one as a URL to get the image, FileName on the form files collection, OR the frame on the source media at the given time in format HH:MM:SS.FFFF)</param>
-        /// <param name="targetFaces">Comma separated list of source faces to apply (each one as a URL to get the image, FileName on the form files collection, OR the frame on the source media at the given time in format HH:MM:SS.FFFF)</param>
-        /// <param name="targetStartTime">Start time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes from the start of the target video</param>
-        /// <param name="targetEndTime">End time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes to the end of the target video</param>
-        /// <param name="superResolution">True to indicate the use of super resolution. Default is false.</param>
-        /// <param name="dl">Download type. NULL: returns JSON with the URL to download. 0: file. 1: file stream.</param>
+        /// <param name="form">The form data</param>
         /// <returns></returns>
         [HttpPost("p/{type}")]
         [Produces("application/json")]
         [AuditApi(IncludeResponseBody = true)]
         public async Task<ActionResult<SwapFacesProcessResponse>> Process(
             [FromRoute] MediaType type, 
-            [FromForm(Name = "tm")] string targetMedia,
-            [FromForm(Name = "sf")] string sourceFaces,
-            [FromForm(Name = "tf")] string? targetFaces = null,
-            [FromForm(Name = "tst")] string? targetStartTime = null,
-            [FromForm(Name = "tet")] string? targetEndTime = null,
-            [FromForm(Name = "sr")] bool superResolution = false,
-            [FromQuery] int? dl = null)
+            [FromForm] ProcessForm form
+            )
         {
             bool isVideo = type == MediaType.Video;
+            var targetMedia = form.TargetMedia;
+            var targetStartTime = form.TargetStartTime;
+            var targetEndTime = form.TargetEndTime;
+            var sourceFaces = form.SourceFaces;
+            var targetFaces = form.TargetFaces;
+            var superResolution = form.SuperResolution;
+            var downloadType = form.Download;
+
             if (targetMedia == null)
             {
                 return BadRequest("Missing target media");
@@ -136,6 +72,7 @@ namespace SwapFaces.Controllers
                 return BadRequest("Missing target faces for video");
             }
 
+            // We can use either Request.Form or form.Files
             var totalBytes = Request.Form.Files?.Sum(f => f.Length) ?? 0;
             if (totalBytes > 10000000)
             {
@@ -186,10 +123,10 @@ namespace SwapFaces.Controllers
             var fileName = result.Success == true ? Path.GetFileName(result.OutputFileName) : null;
             var urlDownload = fileName == null ? null : Url.ActionLink("Download", null, new { r = request.RequestId, f = fileName });
 
-            if (dl.HasValue && fileName != null)
+            if (downloadType != DownloadType.None && fileName != null)
             {
                 // Direct download requested
-                return Download(request.RequestId, fileName, dl.Value);
+                return Download(request.RequestId, fileName, downloadType);
             }
 
             return Ok(new SwapFacesProcessResponse()
@@ -200,6 +137,7 @@ namespace SwapFaces.Controllers
                 RequestId = request.RequestId,
                 Success = result.Success
             });
+
         }
 
         /// <summary>
@@ -210,7 +148,7 @@ namespace SwapFaces.Controllers
         /// <param name="download">1 to indicate the file should be returned as an attachment</param>
         [HttpGet("d")]
         [AuditApi(IncludeResponseBody = false)]
-        public ActionResult Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "f")] string fileName, [FromQuery(Name = "dl")] int download = 0)
+        public ActionResult Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "f")] string fileName, [FromQuery(Name = "dl")] DownloadType download = DownloadType.None)
         {
             if (!ValidateRequestId.IsMatch(requestId))
             {
@@ -220,7 +158,10 @@ namespace SwapFaces.Controllers
             {
                 return BadRequest("Must provide a file name");
             }
-
+            if (download == DownloadType.None)
+            {
+                download = DownloadType.Stream;
+            }
             var filePath = _swapFaceProcessor.GetFilePathForDownload(requestId, fileName);
             if (filePath != null)
             {
