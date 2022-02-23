@@ -121,7 +121,7 @@ namespace SwapFaces.Controllers
             LogHelper.EphemeralLog("SwapFaceProcessor Response: " + JsonSerializer.Serialize(result));
 
             var fileName = result.Success == true ? Path.GetFileName(result.OutputFileName) : null;
-            var urlDownload = fileName == null ? null : Url.ActionLink("Download", null, new { r = request.RequestId, f = fileName });
+            var urlDownload = fileName == null ? null : Url.ActionLink("Download", null, new { r = request.RequestId });
 
             if (result.Success && downloadType != DownloadType.None)
             {
