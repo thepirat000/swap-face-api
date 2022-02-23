@@ -176,7 +176,7 @@ namespace SwapFaces.Controllers
                 {
                     var streamResult = new FileStreamResult(new FileStream(filePath, FileMode.Open, FileAccess.Read), contentType);
                     streamResult.EnableRangeProcessing = true;
-                    streamResult.FileDownloadName = fileDownloadName;
+                    //streamResult.FileDownloadName = fileDownloadName;
                     return streamResult;
                 }
             }
