@@ -165,9 +165,10 @@ namespace SwapFaces.Controllers
                     contentType = Path.GetExtension(filePath).Equals(".mp4", StringComparison.InvariantCultureIgnoreCase) ? "video/mp4" : "image/jpeg";
                 }
                 HttpContext.Response.Headers.Add("x-download-url", Url.ActionLink("Download", null, new { r = requestId, dl = download }));
+                var fileDownloadName = $"{requestId}{Path.GetExtension(filePath)}";
                 if (download == DownloadType.Attachment)
                 {
-                    var physicalFile = PhysicalFile(filePath, contentType, $"{requestId}");
+                    var physicalFile = PhysicalFile(filePath, contentType, fileDownloadName);
                     physicalFile.EnableRangeProcessing = true;
                     return physicalFile;
                 }
@@ -175,6 +176,7 @@ namespace SwapFaces.Controllers
                 {
                     var streamResult = new FileStreamResult(new FileStream(filePath, FileMode.Open, FileAccess.Read), contentType);
                     streamResult.EnableRangeProcessing = true;
+                    streamResult.FileDownloadName = fileDownloadName;
                     return streamResult;
                 }
             }
