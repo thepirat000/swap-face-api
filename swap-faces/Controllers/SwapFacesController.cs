@@ -121,7 +121,7 @@ namespace SwapFaces.Controllers
             LogHelper.EphemeralLog("SwapFaceProcessor Response: " + JsonSerializer.Serialize(result));
 
             var fileName = result.Success == true ? Path.GetFileName(result.OutputFileName) : null;
-            var urlDownload = fileName == null ? null : Url.ActionLink("Download", null, new { r = request.RequestId });
+            var urlDownload = fileName == null ? null : Url.ActionLink("Download", null, new { requestId = request.RequestId });
 
             if (result.Success && downloadType != DownloadType.None)
             {
@@ -145,9 +145,9 @@ namespace SwapFaces.Controllers
         /// </summary>
         /// <param name="requestId">The original request ID</param>
         /// <param name="download">1 to indicate the file should be returned as an attachment</param>
-        [HttpGet("d")]
+        [HttpGet("d/{requestId}")]
         [AuditApi(IncludeResponseBody = false)]
-        public ActionResult Download([FromQuery(Name = "r")] string requestId, [FromQuery(Name = "dl")] DownloadType download = DownloadType.None)
+        public ActionResult Download([FromRoute] string requestId, [FromQuery(Name = "dl")] DownloadType download = DownloadType.None)
         {
             if (!ValidateRequestId.IsMatch(requestId))
             {
