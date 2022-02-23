@@ -1,6 +1,7 @@
 ﻿using Audit.WebApi;
 using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using SwapFaces.Dto;
 using SwapFaces.Helpers;
 using SwapFaces.Swap;
@@ -38,6 +39,7 @@ namespace SwapFaces.Controllers
         /// <param name="targetStartTime">Start time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes from the start of the target video</param>
         /// <param name="targetEndTime">End time for the target media (only for video target media) in format HH:MM:SS.FFFF. If not given, it processes to the end of the target video</param>
         /// <param name="superResolution">True to indicate the use of super resolution. Default is false.</param>
+        /// <param name="dl">Download type. NULL: returns JSON with the URL to download. 0: file. 1: file stream.</param>
         /// <returns></returns>
         [HttpPost("p/{type}")]
         [Produces("application/json")]
@@ -49,7 +51,8 @@ namespace SwapFaces.Controllers
             [FromForm(Name = "tf")] string? targetFaces = null,
             [FromForm(Name = "tst")] string? targetStartTime = null,
             [FromForm(Name = "tet")] string? targetEndTime = null,
-            [FromForm(Name = "sr")] bool superResolution = false)
+            [FromForm(Name = "sr")] bool superResolution = false,
+            [FromQuery] int? dl = null)
         {
             bool isVideo = type == MediaType.Video;
             if (targetMedia == null)
@@ -122,6 +125,13 @@ namespace SwapFaces.Controllers
 
             var fileName = result.Success == true ? Path.GetFileName(result.OutputFileName) : null;
             var urlDownload = fileName == null ? null : Url.ActionLink("Download", null, new { r = request.RequestId, f = fileName });
+
+            if (dl.HasValue && fileName != null)
+            {
+                // Direct download requested
+                return Download(request.RequestId, fileName, dl.Value);
+            }
+
             return Ok(new SwapFacesProcessResponse()
             {
                 ErrorOutput = result.StdError.Length > 4096 ? result.StdError[^4096..] : result.StdError,
@@ -154,8 +164,11 @@ namespace SwapFaces.Controllers
             var filePath = _swapFaceProcessor.GetFilePathForDownload(requestId, fileName);
             if (filePath != null)
             {
-                var ext = Path.GetExtension(filePath);
-                var contentType = ext.Equals(".mp4", StringComparison.InvariantCultureIgnoreCase) ? "video/mp4" : "image/jpeg";
+                if (!new FileExtensionContentTypeProvider().TryGetContentType(filePath, out string? contentType))
+                {
+                    contentType = Path.GetExtension(filePath).Equals(".mp4", StringComparison.InvariantCultureIgnoreCase) ? "video/mp4" : "image/jpeg";
+                }
+                
                 if (download > 0)
                 {
                     return PhysicalFile(filePath, contentType, $"{requestId}_{fileName}");
