@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.StaticFiles;
 using SwapFaces.Dto;
 using SwapFaces.Helpers;
 using SwapFaces.Swap;
-using System.IO;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -168,7 +167,7 @@ namespace SwapFaces.Controllers
                 {
                     contentType = Path.GetExtension(filePath).Equals(".mp4", StringComparison.InvariantCultureIgnoreCase) ? "video/mp4" : "image/jpeg";
                 }
-                
+                HttpContext.Response.Headers.Add("x-download-url", Url.ActionLink("Download", null, new { r = requestId, f = fileName, dl = download }));
                 if (download > 0)
                 {
                     return PhysicalFile(filePath, contentType, $"{requestId}_{fileName}");
