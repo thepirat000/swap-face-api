@@ -79,7 +79,7 @@ namespace SwapFaces.Swap
                 // Re-add audio from original
                 string tempFilePath = Path.Combine(Path.GetDirectoryName(outputFilePath), Path.GetFileNameWithoutExtension(outputFilePath) + "_audio" + Path.GetExtension(outputFilePath));
                 _ffMpegHelper.MergeAudio(outputFilePath, inputFilePath, tempFilePath);
-                // Remove temp video file
+                // Remove previous video file
                 File.Delete(outputFilePath);
                 // Set the final path
                 outputFilePath = tempFilePath;
@@ -88,6 +88,8 @@ namespace SwapFaces.Swap
                 tempFilePath = Path.Combine(Path.GetDirectoryName(outputFilePath), Path.GetFileNameWithoutExtension(outputFilePath) + "_h264" + Path.GetExtension(outputFilePath));
                 if (_ffMpegHelper.TryChangeVideoCodec(outputFilePath, "h264", tempFilePath))
                 {
+                    // Remove previous video file
+                    File.Delete(outputFilePath);
                     // Set the final path
                     outputFilePath = tempFilePath;
                 }
