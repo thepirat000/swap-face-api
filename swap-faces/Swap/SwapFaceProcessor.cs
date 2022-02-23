@@ -172,7 +172,11 @@ namespace SwapFaces.Swap
                     }
                     break;
                 case TargetMediaSourceType.FileName:
-                    filePath = await WriteTargetFile(request.RequestId, formFiles[targetMedia.Id], targetMedia.MediaType == MediaType.Video ? ".mp4" : ".jpg");
+                    var file = formFiles.FirstOrDefault(f => f.FileName.Equals(targetMedia.Id, StringComparison.InvariantCultureIgnoreCase));
+                    if (file != null)
+                    {
+                        filePath = await WriteTargetFile(request.RequestId, file, targetMedia.MediaType == MediaType.Video ? ".mp4" : ".jpg");
+                    }
                     break;
                 default:
                     throw new NotImplementedException();
@@ -183,6 +187,7 @@ namespace SwapFaces.Swap
         private async Task<string> WriteTargetFile(string requestId, IFormFile file, string defaultExt)
         {
             var folderTarget = Path.Combine(Settings.RequestRootPath, requestId);
+            Directory.CreateDirectory(folderTarget);
             var ext = Path.GetExtension(file.FileName);
             if (string.IsNullOrEmpty(ext))
             {
@@ -222,7 +227,7 @@ namespace SwapFaces.Swap
                         filePath = await _imageDownloader.DownloadImage(new Uri(swapFace.SourceId), Path.Combine(folder, $"FS_{i:D2}"));
                         break;
                     case FaceFromType.FileName:
-                        var file = formFiles[swapFace.SourceId];
+                        var file = formFiles.FirstOrDefault(f => f.FileName.Equals(swapFace.SourceId, StringComparison.InvariantCultureIgnoreCase));
                         if (file != null)
                         {
                             var ext = Path.GetExtension(file.FileName);
@@ -274,7 +279,7 @@ namespace SwapFaces.Swap
                             filePath = await _imageDownloader.DownloadImage(new Uri(swapFace.TargetId), Path.Combine(folder, $"FT_{i:D2}"));
                             break;
                         case FaceFromType.FileName:
-                            var file = formFiles[swapFace.TargetId];
+                            var file = formFiles.FirstOrDefault(f => f.FileName.Equals(swapFace.TargetId, StringComparison.InvariantCultureIgnoreCase));
                             var ext = Path.GetExtension(file.FileName);
                             if (string.IsNullOrEmpty(ext))
                             {
