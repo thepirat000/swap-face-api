@@ -54,27 +54,4 @@ namespace SwapFacesTest
             Console.WriteLine("RESULT: ");
             Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions() { WriteIndented = true }));
         }
-
-        [Test]
-        public async Task Test_ShellHelper_()
-        {
-            IShellHelper shellHelper = new ShellHelper();
-            var cmds = new string[] 
-            { 
-                "dir",
-                "ping -n 10 127.0.0.1 >NUL",
-                "echo fede"
-            };
-            var res = await shellHelper.ExecuteWithTimeout(cmds, null, 1, err =>
-            {
-                Debug.WriteLine("ERR: " + err);
-            }, 
-            txt =>
-            {
-                Debug.WriteLine("INFO: " + txt);
-            });
-
-            Assert.AreEqual(0, res.ExitCode);
-        }
-    }
 }
