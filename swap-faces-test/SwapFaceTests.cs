@@ -54,4 +54,5 @@ namespace SwapFacesTest
             Console.WriteLine("RESULT: ");
             Console.WriteLine(JsonSerializer.Serialize(result, new JsonSerializerOptions() { WriteIndented = true }));
         }
+    }
 }
