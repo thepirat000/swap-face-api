@@ -26,14 +26,14 @@ namespace SwapFaces.Swap
             var originalTargetFilePath = inputFilePath;
 
             // Trim the video if needed
-            inputFilePath = TrimTargetMedia(request.TargetMedia, inputFilePath);
+            inputFilePath = await TrimTargetMedia(request.TargetMedia, inputFilePath);
             // Validate file
             if (!File.Exists(inputFilePath))
             {
                 throw new Exception("Unknown error creating target media");
             }
             // Validate media type
-            var fileMediaType = _ffMpegHelper.GetMediaType(inputFilePath);
+            var fileMediaType = await _ffMpegHelper.GetMediaType(inputFilePath);
             if (!fileMediaType.HasValue)
             {
                 throw new Exception("Unknown error creating target media");
@@ -42,7 +42,7 @@ namespace SwapFaces.Swap
             // Validate video duration
             if (request.TargetMedia.MediaType == MediaType.Video && File.Exists(inputFilePath))
             {
-                var duration = _ffMpegHelper.GetVideoDuration(inputFilePath);
+                var duration = await _ffMpegHelper.GetVideoDuration(inputFilePath);
                 if (duration > Settings.Youtube_MaxDuration)
                 {
                     File.Delete(inputFilePath);
@@ -78,18 +78,21 @@ namespace SwapFaces.Swap
             {
                 // Re-add audio from original
                 string tempFilePath = Path.Combine(Path.GetDirectoryName(outputFilePath), Path.GetFileNameWithoutExtension(outputFilePath) + "_audio" + Path.GetExtension(outputFilePath));
-                _ffMpegHelper.MergeAudio(outputFilePath, inputFilePath, tempFilePath);
+                await _ffMpegHelper.MergeAudio(outputFilePath, inputFilePath, tempFilePath);
+
                 // Remove previous video file
                 File.Delete(outputFilePath);
+
                 // Set the final path
                 outputFilePath = tempFilePath;
 
                 // Encode to h264 if needed 
                 tempFilePath = Path.Combine(Path.GetDirectoryName(outputFilePath), Path.GetFileNameWithoutExtension(outputFilePath) + "_h264" + Path.GetExtension(outputFilePath));
-                if (_ffMpegHelper.TryChangeVideoCodec(outputFilePath, "h264", tempFilePath))
+                if (await _ffMpegHelper.TryChangeVideoCodec(outputFilePath, "h264", tempFilePath))
                 {
                     // Remove previous video file
                     File.Delete(outputFilePath);
+
                     // Set the final path
                     outputFilePath = tempFilePath;
                 }
@@ -113,14 +116,14 @@ namespace SwapFaces.Swap
         /// <summary>
         /// Trims the target media if needed and return the final target video path
         /// </summary>
-        private string TrimTargetMedia(TargetMedia targetMedia, string filePath)
+        private async Task<string> TrimTargetMedia(TargetMedia targetMedia, string filePath)
         {
             if (targetMedia.MediaType == MediaType.Video && (targetMedia.StartAtTime != null || targetMedia.EndAtTime != null))
             {
                 var start = targetMedia.StartAtTime == null ? "00:00:00" : targetMedia.StartAtTime;
                 var end = targetMedia.EndAtTime == null ? "01:00:00" : targetMedia.EndAtTime;
                 var trimFilePath = Path.Combine(Path.GetDirectoryName(filePath)!, Path.GetFileNameWithoutExtension(filePath) + "_trim" + Path.GetExtension(filePath));
-                _ffMpegHelper.TrimVideo(filePath, start, end, trimFilePath);
+                await _ffMpegHelper.TrimVideo(filePath, start, end, trimFilePath);
                 return trimFilePath;
             }
             return filePath;
@@ -145,13 +148,13 @@ namespace SwapFaces.Swap
                         if (!File.Exists(filePath))
                         {
                             // Duration validation on URL
-                            var info = _youtubeHelper.GetVideoInfo(mediaUri);
+                            var info = await _youtubeHelper.GetVideoInfo(mediaUri);
                             if (info.DurationSeconds > Settings.Youtube_MaxDuration)
                             {
                                 File.Delete(filePath);
                                 throw new ArgumentException($"Video duration cannot be longer than {Settings.Youtube_MaxDuration}");
                             }
-                            filePath = _youtubeHelper.DownloadVideoAndAudio(mediaUri).VideoFileFullPath;
+                            filePath = (await _youtubeHelper.DownloadVideoAndAudio(mediaUri)).VideoFileFullPath;
                         }
                     }
                     else
@@ -207,7 +210,7 @@ namespace SwapFaces.Swap
                     case FaceFromType.FrameAtTarget:
                         // Capture frame at TargetId duration on inputVideoFilePath using ffmpeg
                         filePath = Path.Combine(folder, $"FS_{i:D2}.jpg");
-                        _ffMpegHelper.CreateImageForFrame(inputFilePath, swapFace.SourceId, filePath);
+                        await _ffMpegHelper.CreateImageForFrame(inputFilePath, swapFace.SourceId, filePath);
                         if (!File.Exists(filePath))
                         {
                             throw new Exception($"Unknown error extracting frame");
@@ -259,7 +262,7 @@ namespace SwapFaces.Swap
                         case FaceFromType.FrameAtTarget:
                             // Capture frame at TargetId duration on inputVideoFilePath using ffmpeg
                             filePath = Path.Combine(folder, $"FT_{i:D2}.jpg");
-                            _ffMpegHelper.CreateImageForFrame(inputFilePath, swapFace.TargetId, filePath);
+                            await _ffMpegHelper.CreateImageForFrame(inputFilePath, swapFace.TargetId, filePath);
                             if (!File.Exists(filePath))
                             {
                                 throw new Exception($"Unknown error extracting frame");

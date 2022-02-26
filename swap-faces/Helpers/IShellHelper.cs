@@ -11,7 +11,7 @@ namespace SwapFaces.Helpers
         /// <summary>
         /// Executes a command on the shell, capturing stdout and stderr
         /// </summary>
-        ExecuteResult Execute(string cmd, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null);
+        Task<ExecuteResult> Execute(string cmd, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null);
         /// <summary>
         /// Sanitizes a file name
         /// </summary>

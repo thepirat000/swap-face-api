@@ -15,7 +15,7 @@ namespace SwapFaces.Helpers
 
         private static ConcurrentDictionary<string, YoutubeVideoInfo> _videoInfoCache = new ConcurrentDictionary<string, YoutubeVideoInfo>(StringComparer.InvariantCultureIgnoreCase);
 
-        public YoutubeVideoInfo GetVideoInfo(Uri videoUri)
+        public async Task<YoutubeVideoInfo> GetVideoInfo(Uri videoUri)
         {
             // https://youtu.be/{vid}
             // https://www.tiktok.com/{user}/video/{vid}
@@ -25,7 +25,7 @@ namespace SwapFaces.Helpers
                 return cachedInfo;
             }
             var cmd = @$"{Settings.Youtube_Dl_Tool} -s --get-filename --get-duration --no-check-certificate ""{url}""";
-            var shellResult = _shellHelper.Execute(cmd);
+            var shellResult = await _shellHelper.Execute(cmd);
             if (shellResult.ExitCode != 0)
             {
                 throw new Exception($"{Settings.Youtube_Dl_Tool} -s exited with code {shellResult.ExitCode}.\n{shellResult.Output}");
@@ -64,7 +64,7 @@ namespace SwapFaces.Helpers
             return info;
         }
 
-        public YoutubeVideoResponse DownloadVideoAndAudio(Uri videoUri)
+        public async Task<YoutubeVideoResponse> DownloadVideoAndAudio(Uri videoUri)
         {
             var url = videoUri.ToString();
             var result = new YoutubeVideoResponse();
@@ -76,7 +76,7 @@ namespace SwapFaces.Helpers
             }
             var cmd = @$"{Settings.Youtube_Dl_Tool} -f ""bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/[ext=mp4]"" --max-filesize 50M -o ""{fileName}"" --no-check-certificate ""{url}""";
 
-            var shellResult = _shellHelper.Execute(cmd);
+            var shellResult = await _shellHelper.Execute(cmd);
             if (shellResult.ExitCode != 0)
             {
                 throw new Exception($"{Settings.Youtube_Dl_Tool} video exited with code {shellResult.ExitCode}.\n{shellResult.Output}");

@@ -69,7 +69,7 @@ namespace SwapFaces.Helpers
             };
         }
 
-        public ExecuteResult Execute(string cmd, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
+        public async Task<ExecuteResult> Execute(string cmd, Action<string> stdErrDataReceivedCallback = null, Action<string> stdOutDataReceivedCallback = null)
         {
             LogHelper.EphemeralLog("Will execute: " + cmd);
             var isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
@@ -116,8 +116,8 @@ namespace SwapFaces.Helpers
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
-            // TOOD: FDCG: Async !
-            process.WaitForExit();
+            
+            await process.WaitForExitAsync();
             process.CancelOutputRead();
             process.CancelErrorRead();
 

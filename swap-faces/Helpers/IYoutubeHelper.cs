@@ -4,7 +4,7 @@ namespace SwapFaces.Helpers
 {
     public interface IYoutubeHelper
     {
-        YoutubeVideoInfo GetVideoInfo(Uri videoUri);
+        Task<YoutubeVideoInfo> GetVideoInfo(Uri videoUri);
         /// <summary>
         /// Downloads the Video+Audio from a URL (youtube, tiktok, etc). 
         /// </summary>
@@ -14,7 +14,7 @@ namespace SwapFaces.Helpers
         /// https://www.tiktok.com/{user}/video/{vid}
         /// https://i.imgur.com/{id}.mp4
         /// </param>
-        YoutubeVideoResponse DownloadVideoAndAudio(Uri videoUri);
+        Task<YoutubeVideoResponse> DownloadVideoAndAudio(Uri videoUri);
         string GetVideoFilePath(Uri videoUri);
     }
 }
