@@ -33,7 +33,7 @@ namespace SwapFaces.Dto
         /// </summary>
         public DownloadType Download { get; set; }
 
-        [Required] public List<IFormFile> Files { get; set; }
+        public List<IFormFile> Files { get; set; }
 
     }
 

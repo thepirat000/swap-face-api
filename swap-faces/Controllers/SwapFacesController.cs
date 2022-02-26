@@ -37,10 +37,7 @@ namespace SwapFaces.Controllers
         [HttpPost("p/{type}")]
         [Produces("application/json")]
         [AuditApi(IncludeResponseBody = true)]
-        public async Task<ActionResult<SwapFacesProcessResponse>> Process(
-            [FromRoute] MediaType type, 
-            [FromForm] ProcessForm form
-            )
+        public async Task<ActionResult<SwapFacesProcessResponse>> Process([FromRoute] MediaType type, [FromForm] ProcessForm form)
         {
             bool isVideo = type == MediaType.Video;
             var targetMedia = form.TargetMedia;
@@ -91,6 +88,7 @@ namespace SwapFaces.Controllers
                 },
                 SwapFaces = new List<SwapFace>()
             };
+            HttpContext.Response.Headers.Add("x-request-id", request.RequestId);
             if (ValidateUrl.IsMatch(targetMedia))
             {
                 request.TargetMedia.SourceType = TargetMediaSourceType.Url;
