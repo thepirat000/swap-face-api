@@ -59,11 +59,11 @@ namespace SwapFaces.Helpers
                 }
             }
 
-            await WaitOrKill(process, timeoutMinutes);
+            var timedout = await WaitOrKill(process, timeoutMinutes);
 
             return new ExecuteResult()
             {
-                ExitCode = process.ExitCode,
+                ExitCode = timedout ? -1 : process.ExitCode,
                 StdError = stdErrorBuilder.ToString(),
                 StdOutput = stdOutputBuilder.ToString()
             };

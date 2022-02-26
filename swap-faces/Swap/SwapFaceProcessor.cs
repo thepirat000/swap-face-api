@@ -321,6 +321,7 @@ namespace SwapFaces.Swap
         {
             public ExecuteResult CommandResult { get; set; }
         }
+
         private async Task<ExecuteResult> ExecuteInferenceCommand(SwapFacesRequest request, string inputFilePath, 
             string[] sourceImageFilePaths, string[] targetImageFilePaths,
             string outputFilePath)
